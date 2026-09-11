@@ -1,0 +1,187 @@
+{
+  "line_id": "csmt-kalyan",
+  "stations": [
+    {
+      "code": "CSMT",
+      "name": "Chhatrapati Shivaji Maharaj Terminus",
+      "lat": 18.939821,
+      "lng": 72.835468,
+      "order": 1
+    },
+    {
+      "code": "MASJID",
+      "name": "Masjid Bunder",
+      "lat": 18.953611,
+      "lng": 72.838056,
+      "order": 2
+    },
+    {
+      "code": "SANDHURST_ROAD",
+      "name": "Sandhurst Road",
+      "lat": 18.960826,
+      "lng": 72.839511,
+      "order": 3
+    },
+    {
+      "code": "BYCULLA",
+      "name": "Byculla",
+      "lat": 18.975180,
+      "lng": 72.833783,
+      "order": 4
+    },
+    {
+      "code": "CHINCHPOKLI",
+      "name": "Chinchpokli",
+      "lat": 18.987500,
+      "lng": 72.832780,
+      "order": 5
+    },
+    {
+      "code": "CURREY_ROAD",
+      "name": "Currey Road",
+      "lat": 18.995000,
+      "lng": 72.832900,
+      "order": 6
+    },
+    {
+      "code": "PAREL",
+      "name": "Parel",
+      "lat": 19.009482,
+      "lng": 72.837661,
+      "order": 7
+    },
+    {
+      "code": "DADAR",
+      "name": "Dadar",
+      "lat": 19.018335,
+      "lng": 72.843214,
+      "order": 8
+    },
+    {
+      "code": "MATUNGA",
+      "name": "Matunga",
+      "lat": 19.028736,
+      "lng": 72.844156,
+      "order": 9
+    },
+    {
+      "code": "SION",
+      "name": "Sion",
+      "lat": 19.035288,
+      "lng": 72.867119,
+      "order": 10
+    },
+    {
+      "code": "KURLA",
+      "name": "Kurla",
+      "lat": 19.065221,
+      "lng": 72.879375,
+      "order": 11
+    },
+    {
+      "code": "VIDYAVIHAR",
+      "name": "Vidyavihar",
+      "lat": 19.080000,
+      "lng": 72.896300,
+      "order": 12
+    },
+    {
+      "code": "GHATKOPAR",
+      "name": "Ghatkopar",
+      "lat": 19.085649,
+      "lng": 72.908218,
+      "order": 13
+    },
+    {
+      "code": "VIKHROLI",
+      "name": "Vikhroli",
+      "lat": 19.110562,
+      "lng": 72.929066,
+      "order": 14
+    },
+    {
+      "code": "KANJUR_MARG",
+      "name": "Kanjurmarg",
+      "lat": 19.128300,
+      "lng": 72.927500,
+      "order": 15
+    },
+    {
+      "code": "BHANDUP",
+      "name": "Bhandup",
+      "lat": 19.144236,
+      "lng": 72.937971,
+      "order": 16
+    },
+    {
+      "code": "NAHUR",
+      "name": "Nahur",
+      "lat": 19.154722,
+      "lng": 72.946389,
+      "order": 17
+    },
+    {
+      "code": "MULUND",
+      "name": "Mulund",
+      "lat": 19.172778,
+      "lng": 72.956510,
+      "order": 18
+    },
+    {
+      "code": "THANE",
+      "name": "Thane",
+      "lat": 19.186110,
+      "lng": 72.975830,
+      "order": 19
+    },
+    {
+      "code": "KALVA",
+      "name": "Kalva",
+      "lat": 19.197050,
+      "lng": 72.998530,
+      "order": 20
+    },
+    {
+      "code": "MUMBRA",
+      "name": "Mumbra",
+      "lat": 19.176667,
+      "lng": 73.022220,
+      "order": 21
+    },
+    {
+      "code": "DIVA",
+      "name": "Diva Junction",
+      "lat": 19.188389,
+      "lng": 73.041911,
+      "order": 22
+    },
+    {
+      "code": "KOPAR",
+      "name": "Kopar",
+      "lat": 19.211237,
+      "lng": 73.077613,
+      "order": 23
+    },
+    {
+      "code": "DOMBIVLI",
+      "name": "Dombivli",
+      "lat": 19.218219,
+      "lng": 73.086900,
+      "order": 24
+    },
+    {
+      "code": "THAKURLI",
+      "name": "Thakurli",
+      "lat": 19.225770,
+      "lng": 73.097680,
+      "order": 25
+    },
+    {
+      "code": "KALYAN",
+      "name": "Kalyan Junction",
+      "lat": 19.235250,
+      "lng": 73.130500,
+      "order": 26
+    }
+  ]
+}

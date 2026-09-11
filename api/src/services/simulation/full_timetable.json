@@ -1,0 +1,959 @@
+[
+  {
+    "train_id": "UP_SLOW_1",
+    "trip_id": "UP_SLOW_1_06:00",
+    "pattern_id": "csmt_kalyan_slow_v1",
+    "service_type": "slow",
+    "train_subtype": "regular",
+    "rake_type": "MRVC",
+    "rake_length": "15_car",
+    "direction": "UP",
+    "line_type": "UP_slow",
+    "track_type": "up_slow",
+    "track_variant": "up_slow_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "CSMT",
+    "to": "KALYAN",
+    "departure": "06:00",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "CSMT",
+        "arrival": "06:00",
+        "departure": "06:00"
+      },
+      {
+        "station": "MASJID",
+        "arrival": "06:03",
+        "departure": "06:03"
+      },
+      {
+        "station": "SANDHURST_ROAD",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "06:08",
+        "departure": "06:08"
+      },
+      {
+        "station": "CHINCHPOKLI",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "CURREY_ROAD",
+        "arrival": "06:12",
+        "departure": "06:12"
+      },
+      {
+        "station": "PAREL",
+        "arrival": "06:15",
+        "departure": "06:15"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:18",
+        "departure": "06:18"
+      },
+      {
+        "station": "MATUNGA",
+        "arrival": "06:21",
+        "departure": "06:21"
+      },
+      {
+        "station": "SION",
+        "arrival": "06:24",
+        "departure": "06:24"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:28",
+        "departure": "06:28"
+      },
+      {
+        "station": "VIDYAVIHAR",
+        "arrival": "06:31",
+        "departure": "06:31"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:34",
+        "departure": "06:34"
+      },
+      {
+        "station": "VIKHROLI",
+        "arrival": "06:37",
+        "departure": "06:37"
+      },
+      {
+        "station": "KANJUR_MARG",
+        "arrival": "06:40",
+        "departure": "06:40"
+      },
+      {
+        "station": "BHANDUP",
+        "arrival": "06:43",
+        "departure": "06:43"
+      },
+      {
+        "station": "NAHUR",
+        "arrival": "06:46",
+        "departure": "06:46"
+      },
+      {
+        "station": "MULUND",
+        "arrival": "06:49",
+        "departure": "06:49"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:54",
+        "departure": "06:54"
+      },
+      {
+        "station": "KALVA",
+        "arrival": "06:59",
+        "departure": "06:59"
+      },
+      {
+        "station": "MUMBRA",
+        "arrival": "07:03",
+        "departure": "07:03"
+      },
+      {
+        "station": "DIVA",
+        "arrival": "07:07",
+        "departure": "07:07"
+      },
+      {
+        "station": "KOPAR",
+        "arrival": "07:12",
+        "departure": "07:12"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "07:16",
+        "departure": "07:16"
+      },
+      {
+        "station": "THAKURLI",
+        "arrival": "07:20",
+        "departure": "07:20"
+      },
+      {
+        "station": "KALYAN",
+        "arrival": "07:25",
+        "departure": "07:25"
+      }
+    ]
+  },
+  {
+    "train_id": "UP_SLOW_2",
+    "trip_id": "UP_SLOW_2_06:02",
+    "pattern_id": "csmt_kalyan_slow_v1",
+    "service_type": "slow",
+    "train_subtype": "regular",
+    "rake_type": "ICF",
+    "rake_length": "15_car",
+    "direction": "UP",
+    "line_type": "UP_slow",
+    "track_type": "up_slow",
+    "track_variant": "up_slow_2",
+    "lane_index": 1,
+    "lane_count": 2,
+    "from": "CSMT",
+    "to": "KALYAN",
+    "departure": "06:02",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "CSMT",
+        "arrival": "06:02",
+        "departure": "06:02"
+      },
+      {
+        "station": "MASJID",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "SANDHURST_ROAD",
+        "arrival": "06:07",
+        "departure": "06:07"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "CHINCHPOKLI",
+        "arrival": "06:12",
+        "departure": "06:12"
+      },
+      {
+        "station": "CURREY_ROAD",
+        "arrival": "06:14",
+        "departure": "06:14"
+      },
+      {
+        "station": "PAREL",
+        "arrival": "06:17",
+        "departure": "06:17"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:20",
+        "departure": "06:20"
+      },
+      {
+        "station": "MATUNGA",
+        "arrival": "06:23",
+        "departure": "06:23"
+      },
+      {
+        "station": "SION",
+        "arrival": "06:26",
+        "departure": "06:26"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:30",
+        "departure": "06:30"
+      },
+      {
+        "station": "VIDYAVIHAR",
+        "arrival": "06:33",
+        "departure": "06:33"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:36",
+        "departure": "06:36"
+      },
+      {
+        "station": "VIKHROLI",
+        "arrival": "06:39",
+        "departure": "06:39"
+      },
+      {
+        "station": "KANJUR_MARG",
+        "arrival": "06:42",
+        "departure": "06:42"
+      },
+      {
+        "station": "BHANDUP",
+        "arrival": "06:45",
+        "departure": "06:45"
+      },
+      {
+        "station": "NAHUR",
+        "arrival": "06:48",
+        "departure": "06:48"
+      },
+      {
+        "station": "MULUND",
+        "arrival": "06:51",
+        "departure": "06:51"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:56",
+        "departure": "06:56"
+      },
+      {
+        "station": "KALVA",
+        "arrival": "07:01",
+        "departure": "07:01"
+      },
+      {
+        "station": "MUMBRA",
+        "arrival": "07:05",
+        "departure": "07:05"
+      },
+      {
+        "station": "DIVA",
+        "arrival": "07:09",
+        "departure": "07:09"
+      },
+      {
+        "station": "KOPAR",
+        "arrival": "07:14",
+        "departure": "07:14"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "07:18",
+        "departure": "07:18"
+      },
+      {
+        "station": "THAKURLI",
+        "arrival": "07:22",
+        "departure": "07:22"
+      },
+      {
+        "station": "KALYAN",
+        "arrival": "07:27",
+        "departure": "07:27"
+      }
+    ]
+  },
+  {
+    "train_id": "UP_SLOW_3",
+    "trip_id": "UP_SLOW_3_06:05",
+    "pattern_id": "csmt_kalyan_slow_v1",
+    "service_type": "slow",
+    "train_subtype": "regular",
+    "rake_type": "ICF",
+    "rake_length": "12_car",
+    "direction": "UP",
+    "line_type": "UP_slow",
+    "track_type": "up_slow",
+    "track_variant": "up_slow_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "CSMT",
+    "to": "KALYAN",
+    "departure": "06:05",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "CSMT",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "MASJID",
+        "arrival": "06:08",
+        "departure": "06:08"
+      },
+      {
+        "station": "SANDHURST_ROAD",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "06:13",
+        "departure": "06:13"
+      },
+      {
+        "station": "CHINCHPOKLI",
+        "arrival": "06:15",
+        "departure": "06:15"
+      },
+      {
+        "station": "CURREY_ROAD",
+        "arrival": "06:17",
+        "departure": "06:17"
+      },
+      {
+        "station": "PAREL",
+        "arrival": "06:20",
+        "departure": "06:20"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:23",
+        "departure": "06:23"
+      },
+      {
+        "station": "MATUNGA",
+        "arrival": "06:26",
+        "departure": "06:26"
+      },
+      {
+        "station": "SION",
+        "arrival": "06:29",
+        "departure": "06:29"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:33",
+        "departure": "06:33"
+      },
+      {
+        "station": "VIDYAVIHAR",
+        "arrival": "06:36",
+        "departure": "06:36"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:39",
+        "departure": "06:39"
+      },
+      {
+        "station": "VIKHROLI",
+        "arrival": "06:42",
+        "departure": "06:42"
+      },
+      {
+        "station": "KANJUR_MARG",
+        "arrival": "06:45",
+        "departure": "06:45"
+      },
+      {
+        "station": "BHANDUP",
+        "arrival": "06:48",
+        "departure": "06:48"
+      },
+      {
+        "station": "NAHUR",
+        "arrival": "06:51",
+        "departure": "06:51"
+      },
+      {
+        "station": "MULUND",
+        "arrival": "06:54",
+        "departure": "06:54"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:59",
+        "departure": "06:59"
+      },
+      {
+        "station": "KALVA",
+        "arrival": "07:04",
+        "departure": "07:04"
+      },
+      {
+        "station": "MUMBRA",
+        "arrival": "07:08",
+        "departure": "07:08"
+      },
+      {
+        "station": "DIVA",
+        "arrival": "07:12",
+        "departure": "07:12"
+      },
+      {
+        "station": "KOPAR",
+        "arrival": "07:17",
+        "departure": "07:17"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "07:21",
+        "departure": "07:21"
+      },
+      {
+        "station": "THAKURLI",
+        "arrival": "07:25",
+        "departure": "07:25"
+      },
+      {
+        "station": "KALYAN",
+        "arrival": "07:30",
+        "departure": "07:30"
+      }
+    ]
+  },
+  {
+    "train_id": "UP_FAST_1",
+    "trip_id": "UP_FAST_1_06:01",
+    "pattern_id": "csmt_kalyan_fast_v1",
+    "service_type": "fast",
+    "train_subtype": "regular",
+    "rake_type": "ICF",
+    "rake_length": "12_car",
+    "direction": "UP",
+    "line_type": "UP_fast",
+    "track_type": "up_fast",
+    "track_variant": "up_fast",
+    "lane_index": 0,
+    "lane_count": 1,
+    "from": "CSMT",
+    "to": "KALYAN",
+    "departure": "06:01",
+    "peak": false,
+    "color": "#FF3B30",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "CSMT",
+        "arrival": "06:01",
+        "departure": "06:01"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "06:08",
+        "departure": "06:08"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:14",
+        "departure": "06:14"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:22",
+        "departure": "06:22"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:32",
+        "departure": "06:32"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:43",
+        "departure": "06:43"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "06:58",
+        "departure": "06:58"
+      },
+      {
+        "station": "KALYAN",
+        "arrival": "07:06",
+        "departure": "07:06"
+      }
+    ]
+  },
+  {
+    "train_id": "UP_SLOW_4",
+    "trip_id": "UP_SLOW_4_06:03",
+    "pattern_id": "csmt_kalyan_slow_v1",
+    "service_type": "slow",
+    "train_subtype": "regular",
+    "rake_type": "MRVC",
+    "rake_length": "12_car",
+    "direction": "UP",
+    "line_type": "UP_slow",
+    "track_type": "up_slow",
+    "track_variant": "up_slow_2",
+    "lane_index": 1,
+    "lane_count": 2,
+    "from": "DADAR",
+    "to": "KALYAN",
+    "departure": "06:03",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "DADAR",
+        "arrival": "06:03",
+        "departure": "06:03"
+      },
+      {
+        "station": "MATUNGA",
+        "arrival": "06:06",
+        "departure": "06:06"
+      },
+      {
+        "station": "SION",
+        "arrival": "06:08",
+        "departure": "06:08"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:11",
+        "departure": "06:11"
+      },
+      {
+        "station": "VIDYAVIHAR",
+        "arrival": "06:13",
+        "departure": "06:13"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:15",
+        "departure": "06:15"
+      },
+      {
+        "station": "VIKHROLI",
+        "arrival": "06:18",
+        "departure": "06:18"
+      },
+      {
+        "station": "KANJUR_MARG",
+        "arrival": "06:21",
+        "departure": "06:21"
+      },
+      {
+        "station": "BHANDUP",
+        "arrival": "06:24",
+        "departure": "06:24"
+      },
+      {
+        "station": "NAHUR",
+        "arrival": "06:27",
+        "departure": "06:27"
+      },
+      {
+        "station": "MULUND",
+        "arrival": "06:31",
+        "departure": "06:31"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:34",
+        "departure": "06:34"
+      },
+      {
+        "station": "KALVA",
+        "arrival": "06:37",
+        "departure": "06:37"
+      },
+      {
+        "station": "MUMBRA",
+        "arrival": "06:40",
+        "departure": "06:40"
+      },
+      {
+        "station": "DIVA",
+        "arrival": "06:43",
+        "departure": "06:43"
+      },
+      {
+        "station": "KOPAR",
+        "arrival": "06:46",
+        "departure": "06:46"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "06:49",
+        "departure": "06:49"
+      },
+      {
+        "station": "THAKURLI",
+        "arrival": "06:52",
+        "departure": "06:52"
+      },
+      {
+        "station": "KALYAN",
+        "arrival": "06:57",
+        "departure": "06:57"
+      }
+    ]
+  },
+  {
+    "train_id": "DOWN_FAST_1",
+    "trip_id": "DOWN_FAST_1_06:10",
+    "pattern_id": "kalyan_csmt_fast_v1",
+    "service_type": "fast",
+    "train_subtype": "regular",
+    "rake_type": "MRVC",
+    "rake_length": "15_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_fast",
+    "track_type": "down_fast",
+    "track_variant": "down_fast",
+    "lane_index": 0,
+    "lane_count": 1,
+    "from": "THANE",
+    "to": "CSMT",
+    "departure": "06:10",
+    "peak": false,
+    "color": "#FF3B30",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "THANE",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:18",
+        "departure": "06:18"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:33",
+        "departure": "06:33"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:44",
+        "departure": "06:44"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "06:54",
+        "departure": "06:54"
+      },
+      {
+        "station": "CSMT",
+        "arrival": "07:02",
+        "departure": "07:02"
+      }
+    ]
+  },
+  {
+    "train_id": "DOWN_SLOW_1",
+    "trip_id": "DOWN_SLOW_1_06:05",
+    "pattern_id": "kalyan_csmt_slow_v1",
+    "service_type": "slow",
+    "train_subtype": "regular",
+    "rake_type": "ICF",
+    "rake_length": "15_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_slow",
+    "track_type": "down_slow",
+    "track_variant": "down_slow_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "KALYAN",
+    "to": "CSMT",
+    "departure": "06:05",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "KALYAN",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "THAKURLI",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "06:14",
+        "departure": "06:14"
+      },
+      {
+        "station": "KOPAR",
+        "arrival": "06:18",
+        "departure": "06:18"
+      },
+      {
+        "station": "DIVA",
+        "arrival": "06:23",
+        "departure": "06:23"
+      },
+      {
+        "station": "MUMBRA",
+        "arrival": "06:27",
+        "departure": "06:27"
+      },
+      {
+        "station": "KALVA",
+        "arrival": "06:31",
+        "departure": "06:31"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:36",
+        "departure": "06:36"
+      },
+      {
+        "station": "MULUND",
+        "arrival": "06:41",
+        "departure": "06:41"
+      },
+      {
+        "station": "NAHUR",
+        "arrival": "06:44",
+        "departure": "06:44"
+      },
+      {
+        "station": "BHANDUP",
+        "arrival": "06:47",
+        "departure": "06:47"
+      },
+      {
+        "station": "KANJUR_MARG",
+        "arrival": "06:50",
+        "departure": "06:50"
+      },
+      {
+        "station": "VIKHROLI",
+        "arrival": "06:53",
+        "departure": "06:53"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:56",
+        "departure": "06:56"
+      },
+      {
+        "station": "VIDYAVIHAR",
+        "arrival": "06:59",
+        "departure": "06:59"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "07:02",
+        "departure": "07:02"
+      },
+      {
+        "station": "SION",
+        "arrival": "07:06",
+        "departure": "07:06"
+      },
+      {
+        "station": "MATUNGA",
+        "arrival": "07:09",
+        "departure": "07:09"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "07:12",
+        "departure": "07:12"
+      },
+      {
+        "station": "PAREL",
+        "arrival": "07:15",
+        "departure": "07:15"
+      },
+      {
+        "station": "CURREY_ROAD",
+        "arrival": "07:18",
+        "departure": "07:18"
+      },
+      {
+        "station": "CHINCHPOKLI",
+        "arrival": "07:20",
+        "departure": "07:20"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "07:22",
+        "departure": "07:22"
+      },
+      {
+        "station": "SANDHURST_ROAD",
+        "arrival": "07:25",
+        "departure": "07:25"
+      },
+      {
+        "station": "MASJID",
+        "arrival": "07:27",
+        "departure": "07:27"
+      },
+      {
+        "station": "CSMT",
+        "arrival": "07:30",
+        "departure": "07:30"
+      }
+    ]
+  },
+  {
+    "train_id": "DOWN_FAST_2",
+    "trip_id": "DOWN_FAST_2_06:05",
+    "pattern_id": "kalyan_csmt_fast_v1",
+    "service_type": "fast",
+    "train_subtype": "regular",
+    "rake_type": "MRVC",
+    "rake_length": "12_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_fast",
+    "track_type": "down_fast",
+    "track_variant": "down_fast",
+    "lane_index": 0,
+    "lane_count": 1,
+    "from": "KALYAN",
+    "to": "CSMT",
+    "departure": "06:05",
+    "peak": false,
+    "color": "#FF3B30",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "KALYAN",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "DOMBIVLI",
+        "arrival": "06:13",
+        "departure": "06:13"
+      },
+      {
+        "station": "THANE",
+        "arrival": "06:28",
+        "departure": "06:28"
+      },
+      {
+        "station": "GHATKOPAR",
+        "arrival": "06:39",
+        "departure": "06:39"
+      },
+      {
+        "station": "KURLA",
+        "arrival": "06:49",
+        "departure": "06:49"
+      },
+      {
+        "station": "DADAR",
+        "arrival": "06:57",
+        "departure": "06:57"
+      },
+      {
+        "station": "BYCULLA",
+        "arrival": "07:03",
+        "departure": "07:03"
+      },
+      {
+        "station": "CSMT",
+        "arrival": "07:10",
+        "departure": "07:10"
+      }
+    ]
+  }
+]

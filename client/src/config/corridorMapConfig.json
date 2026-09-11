@@ -1,0 +1,6 @@
+{
+  "corridorId": "MUMBAI_CSMT_KALYAN",
+  "name": "Mumbai Central Line: CSMT – Kalyan",
+  "description": "Complete corridor with slow and fast tracks, up and down directions",
+  "sourceDataPath": "../../api/src/services/simulation/sampleTrackData.json"
+}

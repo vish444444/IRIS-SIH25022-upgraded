@@ -1,0 +1,1229 @@
+{
+  "CSMT": {
+    "id": "1",
+    "lat": 18.939821,
+    "lng": 72.835468,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "MASJID",
+            "split": {
+              "up_slow": { "next": ["MASJID.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": []
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "MASJID",
+            "split": {
+              "up_fast": { "next": ["MASJID.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": []
+      }
+    }
+  },
+
+  "MASJID": {
+    "id": "2",
+    "lat": 18.953611,
+    "lng": 72.838056,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "SANDHURST_ROAD",
+            "split": {
+              "up_slow": { "next": ["SANDHURST_ROAD.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "CSMT",
+            "split": {
+              "down_slow": { "next": ["CSMT.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "SANDHURST_ROAD",
+            "split": {
+              "up_fast": { "next": ["SANDHURST_ROAD.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "CSMT",
+            "split": {
+              "down_fast": { "next": ["CSMT.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "SANDHURST_ROAD": {
+    "id": "3",
+    "lat": 18.960826,
+    "lng": 72.839511,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BYCULLA",
+            "split": {
+              "up_slow_1": { "next": ["BYCULLA.up_slow"] },
+              "up_slow_2": { "next": ["BYCULLA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "MASJID",
+            "split": {
+              "down_slow": { "next": ["MASJID.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BYCULLA",
+            "split": {
+              "up_fast": { "next": ["BYCULLA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "MASJID",
+            "split": {
+              "down_fast": { "next": ["MASJID.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "BYCULLA": {
+    "id": "4",
+    "lat": 18.975180,
+    "lng": 72.833783,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "CHINCHPOKLI",
+            "split": {
+              "up_slow": { "next": ["CHINCHPOKLI.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "SANDHURST_ROAD",
+            "split": {
+              "down_slow": { "next": ["SANDHURST_ROAD.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "CHINCHPOKLI",
+            "split": {
+              "up_fast": { "next": ["CHINCHPOKLI.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "SANDHURST_ROAD",
+            "split": {
+              "down_fast": { "next": ["SANDHURST_ROAD.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "CHINCHPOKLI": {
+    "id": "5",
+    "lat": 18.987500,
+    "lng": 72.832780,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "CURREY_ROAD",
+            "split": {
+              "up_slow": { "next": ["CURREY_ROAD.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BYCULLA",
+            "split": {
+              "down_slow": { "next": ["BYCULLA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "CURREY_ROAD",
+            "split": {
+              "up_fast": { "next": ["CURREY_ROAD.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BYCULLA",
+            "split": {
+              "down_fast_1": { "next": ["BYCULLA.down_fast"] },
+              "down_fast_2": { "next": ["BYCULLA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "CURREY_ROAD": {
+    "id": "6",
+    "lat": 18.995000,
+    "lng": 72.832900,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "PAREL",
+            "split": {
+              "up_slow": { "next": ["PAREL.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "CHINCHPOKLI",
+            "split": {
+              "down_slow": { "next": ["CHINCHPOKLI.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "PAREL",
+            "split": {
+              "up_fast": { "next": ["PAREL.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "CHINCHPOKLI",
+            "split": {
+              "down_fast_1": { "next": ["CHINCHPOKLI.down_fast"] },
+              "down_fast_2": { "next": ["CHINCHPOKLI.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "PAREL": {
+    "id": "7",
+    "lat": 19.009482,
+    "lng": 72.837661,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "DADAR",
+            "split": {
+              "up_slow": { "next": ["DADAR.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "CURREY_ROAD",
+            "split": {
+              "down_slow": { "next": ["CURREY_ROAD.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "DADAR",
+            "split": {
+              "up_fast": { "next": ["DADAR.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "CURREY_ROAD",
+            "split": {
+              "down_fast": { "next": ["CURREY_ROAD.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "DADAR": {
+    "id": "8",
+    "lat": 19.018335,
+    "lng": 72.843214,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "MATUNGA",
+            "split": {
+              "up_slow": { "next": ["MATUNGA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "PAREL",
+            "split": {
+              "down_slow": { "next": ["PAREL.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "MATUNGA",
+            "split": {
+              "up_fast": { "next": ["MATUNGA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "PAREL",
+            "split": {
+              "down_fast_1": { "next": ["PAREL.down_fast"] },
+              "down_fast_2": { "next": ["PAREL.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "MATUNGA": {
+    "id": "9",
+    "lat": 19.028736,
+    "lng": 72.844156,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "SION",
+            "split": {
+              "up_slow": { "next": ["SION.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DADAR",
+            "split": {
+              "down_slow": { "next": ["DADAR.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "SION",
+            "split": {
+              "up_fast": { "next": ["SION.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DADAR",
+            "split": {
+              "down_fast": { "next": ["DADAR.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "SION": {
+    "id": "10",
+    "lat": 19.035288,
+    "lng": 72.867119,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KURLA",
+            "split": {
+              "up_slow": { "next": ["KURLA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "MATUNGA",
+            "split": {
+              "down_slow": { "next": ["MATUNGA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KURLA",
+            "split": {
+              "up_fast": { "next": ["KURLA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "MATUNGA",
+            "split": {
+              "down_fast": { "next": ["MATUNGA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "KURLA": {
+    "id": "11",
+    "lat": 19.065221,
+    "lng": 72.879375,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "VIDYAVIHAR",
+            "split": {
+              "up_slow": { "next": ["VIDYAVIHAR.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "SION",
+            "split": {
+              "down_slow": { "next": ["SION.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "VIDYAVIHAR",
+            "split": {
+              "up_fast": { "next": ["VIDYAVIHAR.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "SION",
+            "split": {
+              "down_fast": { "next": ["SION.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "VIDYAVIHAR": {
+    "id": "12",
+    "lat": 19.080000,
+    "lng": 72.896300,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "GHATKOPAR",
+            "split": {
+              "up_slow": { "next": ["GHATKOPAR.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "KURLA",
+            "split": {
+              "down_slow_1": { "next": ["KURLA.down_slow"] },
+              "down_slow_2": { "next": ["KURLA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "GHATKOPAR",
+            "split": {
+              "up_fast_1": { "next": ["GHATKOPAR.up_fast"] },
+              "up_fast_2": { "next": ["GHATKOPAR.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "KURLA",
+            "split": {
+              "down_fast": { "next": ["KURLA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "GHATKOPAR": {
+    "id": "13",
+    "lat": 19.085649,
+    "lng": 72.908218,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "VIKHROLI",
+            "split": {
+              "up_slow_1": { "next": ["VIKHROLI.up_slow"] },
+              "up_slow_2": { "next": ["VIKHROLI.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "VIDYAVIHAR",
+            "split": {
+              "down_slow": { "next": ["VIDYAVIHAR.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "VIKHROLI",
+            "split": {
+              "up_fast": { "next": ["VIKHROLI.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "VIDYAVIHAR",
+            "split": {
+              "down_fast": { "next": ["VIDYAVIHAR.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "VIKHROLI": {
+    "id": "14",
+    "lat": 19.110562,
+    "lng": 72.929066,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KANJUR_MARG",
+            "split": {
+              "up_slow": { "next": ["KANJUR_MARG.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "GHATKOPAR",
+            "split": {
+              "down_slow": { "next": ["GHATKOPAR.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KANJUR_MARG",
+            "split": {
+              "up_fast": { "next": ["KANJUR_MARG.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "GHATKOPAR",
+            "split": {
+              "down_fast": { "next": ["GHATKOPAR.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "KANJUR_MARG": {
+    "id": "15",
+    "lat": 19.128300,
+    "lng": 72.927500,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BHANDUP",
+            "split": {
+              "up_slow": { "next": ["BHANDUP.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "VIKHROLI",
+            "split": {
+              "down_slow": { "next": ["VIKHROLI.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BHANDUP",
+            "split": {
+              "up_fast": { "next": ["BHANDUP.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "VIKHROLI",
+            "split": {
+              "down_fast": { "next": ["VIKHROLI.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "BHANDUP": {
+    "id": "16",
+    "lat": 19.144236,
+    "lng": 72.937971,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "NAHUR",
+            "split": {
+              "up_slow": { "next": ["NAHUR.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "KANJUR_MARG",
+            "split": {
+              "down_slow": { "next": ["KANJUR_MARG.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "NAHUR",
+            "split": {
+              "up_fast": { "next": ["NAHUR.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "KANJUR_MARG",
+            "split": {
+              "down_fast": { "next": ["KANJUR_MARG.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "NAHUR": {
+    "id": "17",
+    "lat": 19.154722,
+    "lng": 72.946389,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "MULUND",
+            "split": {
+              "up_slow": { "next": ["MULUND.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BHANDUP",
+            "split": {
+              "down_slow": { "next": ["BHANDUP.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "MULUND",
+            "split": {
+              "up_fast": { "next": ["MULUND.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BHANDUP",
+            "split": {
+              "down_fast": { "next": ["BHANDUP.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "MULUND": {
+    "id": "18",
+    "lat": 19.172778,
+    "lng": 72.956510,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "THANE",
+            "split": {
+              "up_slow": { "next": ["THANE.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "NAHUR",
+            "split": {
+              "down_slow_1": { "next": ["NAHUR.down_slow"] },
+              "down_slow_2": { "next": ["NAHUR.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "THANE",
+            "split": {
+              "up_fast": { "next": ["THANE.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "NAHUR",
+            "split": {
+              "down_fast": { "next": ["NAHUR.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "THANE": {
+    "id": "19",
+    "lat": 19.186110,
+    "lng": 72.975830,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KALVA",
+            "split": {
+              "up_slow": { "next": ["KALVA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "MULUND",
+            "split": {
+              "down_slow": { "next": ["MULUND.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KALVA",
+            "split": {
+              "up_fast": { "next": ["KALVA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "MULUND",
+            "split": {
+              "down_fast": { "next": ["MULUND.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "KALVA": {
+    "id": "20",
+    "lat": 19.197050,
+    "lng": 72.998530,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "MUMBRA",
+            "split": {
+              "up_slow": { "next": ["MUMBRA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "THANE",
+            "split": {
+              "down_slow": { "next": ["THANE.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "MUMBRA",
+            "split": {
+              "up_fast": { "next": ["MUMBRA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "THANE",
+            "split": {
+              "down_fast": { "next": ["THANE.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "MUMBRA": {
+    "id": "21",
+    "lat": 19.176667,
+    "lng": 73.022220,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "DIVA",
+            "split": {
+              "up_slow": { "next": ["DIVA.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "KALVA",
+            "split": {
+              "down_slow": { "next": ["KALVA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "DIVA",
+            "split": {
+              "up_fast": { "next": ["DIVA.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "KALVA",
+            "split": {
+              "down_fast": { "next": ["KALVA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "DIVA": {
+    "id": "22",
+    "lat": 19.188389,
+    "lng": 73.041911,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KOPAR",
+            "split": {
+              "up_slow": { "next": ["KOPAR.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "MUMBRA",
+            "split": {
+              "down_slow": { "next": ["MUMBRA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KOPAR",
+            "split": {
+              "up_fast": { "next": ["KOPAR.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "MUMBRA",
+            "split": {
+              "down_fast": { "next": ["MUMBRA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "KOPAR": {
+    "id": "23",
+    "lat": 19.211237,
+    "lng": 73.077613,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "DOMBIVLI",
+            "split": {
+              "up_slow": { "next": ["DOMBIVLI.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DIVA",
+            "split": {
+              "down_slow": { "next": ["DIVA.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "DOMBIVLI",
+            "split": {
+              "up_fast": { "next": ["DOMBIVLI.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DIVA",
+            "split": {
+              "down_fast": { "next": ["DIVA.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "DOMBIVLI": {
+    "id": "24",
+    "lat": 19.218219,
+    "lng": 73.086900,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "THAKURLI",
+            "split": {
+              "up_slow": { "next": ["THAKURLI.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "KOPAR",
+            "split": {
+              "down_slow": { "next": ["KOPAR.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "THAKURLI",
+            "split": {
+              "up_fast": { "next": ["THAKURLI.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "KOPAR",
+            "split": {
+              "down_fast": { "next": ["KOPAR.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "THAKURLI": {
+    "id": "25",
+    "lat": 19.225770,
+    "lng": 73.097680,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KALYAN",
+            "split": {
+              "up_slow": { "next": ["KALYAN.up_slow"] }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DOMBIVLI",
+            "split": {
+              "down_slow": { "next": ["DOMBIVLI.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KALYAN",
+            "split": {
+              "up_fast": { "next": ["KALYAN.up_fast"] }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DOMBIVLI",
+            "split": {
+              "down_fast": { "next": ["DOMBIVLI.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  },
+
+  "KALYAN": {
+    "id": "26",
+    "lat": 19.235250,
+    "lng": 73.130500,
+    "tracks": {
+      "up_slow": {
+        "segments": []
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "THAKURLI",
+            "split": {
+              "down_slow": { "next": ["THAKURLI.down_slow"] }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": []
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "THAKURLI",
+            "split": {
+              "down_fast": { "next": ["THAKURLI.down_fast"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+[
+  "current_delay_min",
+  "train_type_code",
+  "priority",
+  "current_speed_kmh",
+  "previous_speed_kmh",
+  "dwell_time_sec",
+  "distance_to_next_km",
+  "section_occupancy",
+  "trains_ahead",
+  "congestion_index",
+  "platform_available",
+  "disruption_active",
+  "scheduled_headway_sec"
+]

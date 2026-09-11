@@ -1,0 +1,251 @@
+{
+  "CSMT": {
+    "id": "H1",
+    "lat": 18.939821,
+    "lng": 72.835468,
+    "tracks": {
+      "up_slow":   { "next": ["MASJID.up_slow"] },
+      "down_slow": { "next": [] }
+    }
+  },
+
+  "MASJID": {
+    "id": "H2",
+    "lat": 18.953611,
+    "lng": 72.838056,
+    "tracks": {
+      "up_slow":   { "next": ["SANDHURST_ROAD.up_slow"] },
+      "down_slow": { "next": ["CSMT.down_slow"] }
+    }
+  },
+
+  "SANDHURST_ROAD": {
+    "id": "H3",
+    "lat": 18.960826,
+    "lng": 72.839511,
+    "tracks": {
+      "up_slow":   { "next": ["DOCKYARD_ROAD.up_slow"] },
+      "down_slow": { "next": ["MASJID.down_slow"] }
+    }
+  },
+
+  "DOCKYARD_ROAD": {
+    "id": "H4",
+    "lat": 18.968354,
+    "lng": 72.843482,
+    "tracks": {
+      "up_slow":   { "next": ["REAY_ROAD.up_slow"] },
+      "down_slow": { "next": ["SANDHURST_ROAD.down_slow"] }
+    }
+  },
+
+  "REAY_ROAD": {
+    "id": "H5",
+    "lat": 18.976180,
+    "lng": 72.844930,
+    "tracks": {
+      "up_slow":   { "next": ["COTTON_GREEN.up_slow"] },
+      "down_slow": { "next": ["DOCKYARD_ROAD.down_slow"] }
+    }
+  },
+
+  "COTTON_GREEN": {
+    "id": "H6",
+    "lat": 18.986067,
+    "lng": 72.846158,
+    "tracks": {
+      "up_slow":   { "next": ["SEWRI.up_slow"] },
+      "down_slow": { "next": ["REAY_ROAD.down_slow"] }
+    }
+  },
+
+  "SEWRI": {
+    "id": "H7",
+    "lat": 18.998305,
+    "lng": 72.859192,
+    "tracks": {
+      "up_slow":   { "next": ["WADALA_ROAD.up_slow"] },
+      "down_slow": { "next": ["COTTON_GREEN.down_slow"] }
+    }
+  },
+
+  "WADALA_ROAD": {
+    "id": "H8",
+    "lat": 19.016567,
+    "lng": 72.859660,
+    "tracks": {
+      "up_slow":   { "next": ["GTB_NAGAR.up_slow"] },
+      "down_slow": { "next": ["SEWRI.down_slow"] }
+    }
+  },
+
+  "GTB_NAGAR": {
+    "id": "H9",
+    "lat": 19.031050,
+    "lng": 72.865760,
+    "tracks": {
+      "up_slow":   { "next": ["CHUNABHATTI.up_slow"] },
+      "down_slow": { "next": ["WADALA_ROAD.down_slow"] }
+    }
+  },
+
+  "CHUNABHATTI": {
+    "id": "H10",
+    "lat": 19.045223,
+    "lng": 72.879899,
+    "tracks": {
+      "up_slow":   { "next": ["KURLA_H.up_slow"] },
+      "down_slow": { "next": ["GTB_NAGAR.down_slow"] }
+    }
+  },
+
+  "KURLA_H": {
+    "id": "H11",
+    "lat": 19.064950,
+    "lng": 72.879700,
+    "tracks": {
+      "up_slow":   { "next": ["TILAK_NAGAR.up_slow"] },
+      "down_slow": { "next": ["CHUNABHATTI.down_slow"] }
+    }
+  },
+
+  "TILAK_NAGAR": {
+    "id": "H12",
+    "lat": 19.071882,
+    "lng": 72.897260,
+    "tracks": {
+      "up_slow":   { "next": ["CHEMBUR.up_slow"] },
+      "down_slow": { "next": ["KURLA_H.down_slow"] }
+    }
+  },
+
+  "CHEMBUR": {
+    "id": "H13",
+    "lat": 19.062798,
+    "lng": 72.905502,
+    "tracks": {
+      "up_slow":   { "next": ["GOVANDI.up_slow"] },
+      "down_slow": { "next": ["TILAK_NAGAR.down_slow"] }
+    }
+  },
+
+  "GOVANDI": {
+    "id": "H14",
+    "lat": 19.045884,
+    "lng": 72.925236,
+    "tracks": {
+      "up_slow":   { "next": ["MANKHURD.up_slow"] },
+      "down_slow": { "next": ["CHEMBUR.down_slow"] }
+    }
+  },
+
+  "MANKHURD": {
+    "id": "H15",
+    "lat": 19.049040,
+    "lng": 72.936190,
+    "tracks": {
+      "up_slow":   { "next": ["VASHI.up_slow"] },
+      "down_slow": { "next": ["GOVANDI.down_slow"] }
+    }
+  },
+
+  "VASHI": {
+    "id": "H16",
+    "lat": 19.077527,
+    "lng": 72.997540,
+    "tracks": {
+      "up_slow":   { "next": ["SANPADA.up_slow"] },
+      "down_slow": { "next": ["MANKHURD.down_slow"] }
+    }
+  },
+
+  "SANPADA": {
+    "id": "H17",
+    "lat": 19.064480,
+    "lng": 73.008100,
+    "tracks": {
+      "up_slow":   { "next": ["JUINAGAR.up_slow"] },
+      "down_slow": { "next": ["VASHI.down_slow"] }
+    }
+  },
+
+  "JUINAGAR": {
+    "id": "H18",
+    "lat": 19.059200,
+    "lng": 73.016900,
+    "tracks": {
+      "up_slow":   { "next": ["NERUL.up_slow"] },
+      "down_slow": { "next": ["SANPADA.down_slow"] }
+    }
+  },
+
+  "NERUL": {
+    "id": "H19",
+    "lat": 19.033058,
+    "lng": 73.018317,
+    "tracks": {
+      "up_slow":   { "next": ["SEAWOODS.up_slow"] },
+      "down_slow": { "next": ["JUINAGAR.down_slow"] }
+    }
+  },
+
+  "SEAWOODS": {
+    "id": "H20",
+    "lat": 19.022800,
+    "lng": 73.022520,
+    "tracks": {
+      "up_slow":   { "next": ["BELAPUR.up_slow"] },
+      "down_slow": { "next": ["NERUL.down_slow"] }
+    }
+  },
+
+  "BELAPUR": {
+    "id": "H21",
+    "lat": 19.019930,
+    "lng": 73.036750,
+    "tracks": {
+      "up_slow":   { "next": ["KHARGHAR.up_slow"] },
+      "down_slow": { "next": ["SEAWOODS.down_slow"] }
+    }
+  },
+
+  "KHARGHAR": {
+    "id": "H22",
+    "lat": 19.033400,
+    "lng": 73.065100,
+    "tracks": {
+      "up_slow":   { "next": ["MANSAROVAR.up_slow"] },
+      "down_slow": { "next": ["BELAPUR.down_slow"] }
+    }
+  },
+
+  "MANSAROVAR": {
+    "id": "H23",
+    "lat": 19.043100,
+    "lng": 73.080400,
+    "tracks": {
+      "up_slow":   { "next": ["KHANDESHWAR.up_slow"] },
+      "down_slow": { "next": ["KHARGHAR.down_slow"] }
+    }
+  },
+
+  "KHANDESHWAR": {
+    "id": "H24",
+    "lat": 19.024700,
+    "lng": 73.102300,
+    "tracks": {
+      "up_slow":   { "next": ["PANVEL.up_slow"] },
+      "down_slow": { "next": ["MANSAROVAR.down_slow"] }
+    }
+  },
+
+  "PANVEL": {
+    "id": "H25",
+    "lat": 18.990030,
+    "lng": 73.117550,
+    "tracks": {
+      "up_slow":   { "next": [] },
+      "down_slow": { "next": ["KHANDESHWAR.down_slow"] }
+    }
+  }
+}
