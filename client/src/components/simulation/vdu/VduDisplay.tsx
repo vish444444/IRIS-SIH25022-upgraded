@@ -70,11 +70,11 @@ export const VduDisplay: React.FC<Props> = ({
   const stationSignals = signals.filter((s) => s.station === selectedStation)
 
   return (
-    <div className="bg-[#04060d] text-slate-200 rounded-xl border border-slate-800/80 p-3 flex flex-col gap-3 shadow-2xl">
+    <div className="bg-[#050811] text-slate-200 rounded-2xl border border-slate-800/90 p-3.5 flex flex-col gap-3.5 shadow-2xl backdrop-blur-md">
       {/* VDU Top Master Control Room Bar */}
-      <div className="bg-[#090e1c] border border-slate-700/60 rounded-lg p-3 flex items-center justify-between flex-wrap gap-3">
+      <div className="backdrop-blur-md bg-[#090e1f]/90 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-inner">
             <Monitor className="w-5 h-5 text-amber-400" />
           </div>
           <div>
@@ -82,23 +82,23 @@ export const VduDisplay: React.FC<Props> = ({
               <h2 className="text-sm font-extrabold text-white font-mono tracking-wider">
                 DRM RAIPUR — VISUAL DISPLAY UNIT (VDU)
               </h2>
-              <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-mono font-bold">
+              <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider">
                 SECR OPERATIONAL OCC
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-[11px] text-slate-400 font-mono mt-0.5">
               Live Station Interlocking, Platform Berth Occupancy, Point Machines & Axle Counters
             </p>
           </div>
         </div>
 
         {/* Station Selector Buttons */}
-        <div className="flex items-center bg-slate-950/80 p-1 rounded-lg border border-slate-700/60 flex-wrap gap-1">
+        <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-700/60 flex-wrap gap-1">
           {stations.map((st) => (
             <button
               key={st.id}
               onClick={() => setSelectedStation(st.id)}
-              className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
                 selectedStation === st.id
                   ? 'bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.35)]'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
@@ -120,62 +120,62 @@ export const VduDisplay: React.FC<Props> = ({
       </div>
 
       {/* KPI Status Strip for the selected station */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {/* Platform Occupancy */}
-        <div className="bg-[#090e1c] border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+        <div className="backdrop-blur-md bg-[#090e1f]/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
           <div>
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Platform Berths</span>
             <div className="text-base font-extrabold font-mono text-amber-400 mt-0.5">
               {stationOccPlatforms} / {stationPlatforms.length} <span className="text-[10px] text-slate-400 font-normal">OCCUPIED</span>
             </div>
           </div>
-          <div className="p-2 bg-amber-500/10 rounded border border-amber-500/20 text-amber-400">
+          <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
             <Train className="w-4 h-4" />
           </div>
         </div>
 
         {/* Point Machines */}
-        <div className="bg-[#090e1c] border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+        <div className="backdrop-blur-md bg-[#090e1f]/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
           <div>
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Point Machines</span>
             <div className="text-base font-extrabold font-mono text-blue-400 mt-0.5">
               {stationPoints.length} <span className="text-[10px] text-emerald-400 font-bold">ALL LOCKED</span>
             </div>
           </div>
-          <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20 text-blue-400">
+          <div className="p-2.5 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-400">
             <GitBranch className="w-4 h-4" />
           </div>
         </div>
 
         {/* Axle Counters */}
-        <div className="bg-[#090e1c] border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+        <div className="backdrop-blur-md bg-[#090e1f]/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
           <div>
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Axle Circuits</span>
             <div className="text-base font-extrabold font-mono text-emerald-400 mt-0.5">
               {stationAxles.length} <span className="text-[10px] text-slate-300 font-normal">MONITORED</span>
             </div>
           </div>
-          <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20 text-emerald-400">
+          <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">
             <Activity className="w-4 h-4" />
           </div>
         </div>
 
         {/* Signals */}
-        <div className="bg-[#090e1c] border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+        <div className="backdrop-blur-md bg-[#090e1f]/80 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
           <div>
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Signals (MACLS)</span>
             <div className="text-base font-extrabold font-mono text-yellow-400 mt-0.5">
               {stationSignals.length} <span className="text-[10px] text-slate-400 font-normal">PROVED</span>
             </div>
           </div>
-          <div className="p-2 bg-yellow-500/10 rounded border border-yellow-500/20 text-yellow-400">
+          <div className="p-2.5 bg-yellow-500/10 rounded-xl border border-yellow-500/20 text-yellow-400">
             <Radio className="w-4 h-4" />
           </div>
         </div>
       </div>
 
       {/* Main Schematic & Sub-view Switcher */}
-      <div className="flex items-center justify-between bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-800">
+      <div className="flex items-center justify-between bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-mono text-slate-400 uppercase">View Mode:</span>
           <button

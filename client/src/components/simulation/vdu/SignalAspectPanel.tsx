@@ -13,7 +13,7 @@ export const SignalAspectPanel: React.FC<Props> = ({ signals, station }) => {
   if (filtered.length === 0) return null
 
   return (
-    <div className="bg-[#0a0e1a] border border-slate-700/60 rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-[#0a0e1a] border border-slate-700/60 rounded-xl overflow-hidden flex flex-col shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-900/80 border-b border-slate-700/50">
         <div className="flex items-center gap-2">

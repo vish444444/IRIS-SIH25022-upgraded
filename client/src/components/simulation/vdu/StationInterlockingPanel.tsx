@@ -39,7 +39,7 @@ export const StationInterlockingPanel: React.FC<Props> = ({
   }
 
   return (
-    <div className="bg-[#050811] border border-slate-700/80 rounded-lg overflow-hidden flex flex-col shadow-2xl">
+    <div className="bg-[#050811] border border-slate-700/80 rounded-xl overflow-hidden flex flex-col shadow-2xl">
       {/* VDU Control Room Header Bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-slate-950 via-[#0c1222] to-slate-950 border-b border-slate-700/70">
         <div className="flex items-center gap-3">

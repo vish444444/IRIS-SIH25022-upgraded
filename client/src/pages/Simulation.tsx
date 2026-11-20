@@ -19,6 +19,7 @@ import { VduDisplay } from '../components/simulation/vdu/VduDisplay'
 import { TrainUpdate, TrainState } from '../types/simulation.types'
 import { LineId } from '../types/liveTrains.types'
 import { ModeToggle } from '../components/ModeToggle'
+import { useAuth, getUserRole, getLandingRouteForRole } from '../context/AuthContext'
 import axios from 'axios'
 import { toast } from 'sonner'
 import {
@@ -38,7 +39,12 @@ import {
   Zap,
   LayoutDashboard,
   Brain,
-  Monitor
+  Monitor,
+  LogOut,
+  User as UserIcon,
+  Sparkles,
+  Shield,
+  Home
 } from 'lucide-react'
 
 const getApiBaseUrl = () => {
@@ -57,6 +63,7 @@ const getApiBaseUrl = () => {
 
 const SimulationContent: React.FC = () => {
   const { trains, isConnected, update, emergencyEvents, automaticAnalysis } = useSimulation()
+  const { user, logout } = useAuth()
   const [selectedTrain, setSelectedTrain] = useState<TrainUpdate | null>(null)
   const [focusedTrainId, setFocusedTrainId] = useState<string | null>(null)
   const [focusedSectorId, setFocusedSectorId] = useState<string | null>(null)
@@ -192,7 +199,16 @@ const SimulationContent: React.FC = () => {
   const avgSpeed = speeds.length > 0 ? speeds.reduce((sum, s) => sum + s, 0) / speeds.length : 0
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 overflow-hidden relative flex flex-col font-sans">
+      {/* Subtle Dot Pattern matching Landing Page */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.06]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #38bdf8 1.25px, transparent 1.25px)',
+          backgroundSize: '20px 20px',
+        }}
+      />
+
       <EmergencyHandler
         onFocusTrain={handleTrainClick}
         onEmergencyResolved={(trainId) => {
@@ -201,27 +217,63 @@ const SimulationContent: React.FC = () => {
         }}
       />
 
-      <div className="h-screen flex flex-col">
-        <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-gray-900 dark:bg-slate-100 rounded flex items-center justify-center">
-              <Train className="w-5 h-5 text-white dark:text-slate-900" />
+      <div className="h-screen flex flex-col relative z-10">
+        <header className="backdrop-blur-xl bg-white/80 dark:bg-[#0b101d]/85 border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-2.5 flex items-center justify-between z-20 shadow-sm flex-shrink-0">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-700/80 flex items-center justify-center shadow-inner">
+              <Train className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                IRIS
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Indian Railway Intelligence System
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+                  IRIS
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider">
+                  v2.4 SECR
+                </span>
+              </div>
+              <p className="text-[11px] font-medium leading-none mt-0.5">
+                <span className="text-orange-500 font-semibold">Indian</span>{' '}
+                <span className="text-slate-700 dark:text-slate-300">Railway</span>{' '}
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Intelligence System</span>
               </p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
+          {/* Center Navigation Shortcuts matching Landing */}
+          <nav className="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              <Home className="w-3.5 h-3.5" />
+              Overview
+            </Link>
+            <Link
+              to="/dashboard/controller"
+              className="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              Controller Desk
+            </Link>
+            <Link
+              to="/admin/timetable"
+              className="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              Timetable
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3">
             {/* Live Operations clock */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest hidden md:inline">Sim Time:</span>
-              <div className="text-xs font-semibold font-mono bg-slate-950 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded shadow-[0_0_8px_rgba(52,211,153,0.1)] flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest hidden md:inline">Sim Time:</span>
+              <div className="text-xs font-semibold font-mono bg-slate-950/90 text-emerald-400 border border-emerald-500/30 px-3.5 py-1 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.15)] flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-emerald-400" />
                 {update?.currentTime
                   ? new Date(update.currentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -230,76 +282,105 @@ const SimulationContent: React.FC = () => {
             </div>
 
             {/* Network status */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200/50 dark:border-slate-600/50 rounded text-[11px] font-medium">
-              <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
-              <span className="text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-full text-[11px] font-medium">
+              <span className={`h-2 w-2 rounded-full ${isConnected ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-rose-500 animate-pulse'}`} />
+              <span className="text-slate-600 dark:text-slate-300">
                 {isConnected ? 'Online' : 'Offline'}
               </span>
             </div>
 
+            {/* Start/Stop Button matching Landing CTA */}
             <button
               onClick={simulationRunning ? handleStop : handleStart}
-              className={`px-4 py-1.5 rounded text-xs font-semibold shadow-sm transition-all duration-300 ${
+              className={`px-4 py-1.5 rounded-xl text-xs font-semibold shadow-md hover:scale-[1.02] transition-all duration-200 flex items-center gap-1.5 ${
                 simulationRunning
-                  ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/20'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
               }`}
             >
+              <Activity className="w-3.5 h-3.5" />
               {simulationRunning ? 'Stop Simulator' : 'Start Simulator'}
             </button>
+
+            {/* User Profile Badge */}
+            {user && (
+              <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 text-xs">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold">
+                  <UserIcon className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-slate-800 dark:text-slate-200 leading-none">
+                    {user.name || user.email.split('@')[0]}
+                  </div>
+                  <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">
+                    {user.role?.replace('_', ' ')}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {user && (
+              <button
+                onClick={logout}
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
 
             <ModeToggle />
           </div>
         </header>
 
         <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-          {/* Top Operational Statistics Banner */}
+          {/* Top Operational Statistics Banner matching Landing Page */}
           {!mapFullView && (
-            <div className="px-3 pt-3 grid grid-cols-4 gap-3 flex-shrink-0">
+            <div className="px-4 pt-3 grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
               {/* Total Scheduled Trains */}
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-sm">
+              <div className="backdrop-blur-md bg-white/70 dark:bg-[#0c1322]/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between shadow-sm hover:border-blue-500/40 transition-all">
                 <div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Total Schedules</span>
-                  <h3 className="text-lg font-extrabold mt-1 text-slate-800 dark:text-slate-100">{trains.size}</h3>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Schedules</span>
+                  <h3 className="text-xl font-extrabold mt-1 text-slate-900 dark:text-white font-mono">{trains.size}</h3>
                 </div>
-                <div className="p-2 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg text-blue-500 dark:text-blue-400">
+                <div className="p-2.5 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 rounded-xl text-blue-500 dark:text-blue-400 shadow-sm">
                   <Train className="w-4 h-4" />
                 </div>
               </div>
 
               {/* Active Running Trains */}
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-sm">
+              <div className="backdrop-blur-md bg-white/70 dark:bg-[#0c1322]/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between shadow-sm hover:border-emerald-500/40 transition-all">
                 <div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Active Traffic</span>
-                  <h3 className="text-lg font-extrabold mt-1 text-emerald-600 dark:text-emerald-400">{activeTrains.length}</h3>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Active Traffic</span>
+                  <h3 className="text-xl font-extrabold mt-1 text-emerald-600 dark:text-emerald-400 font-mono">{activeTrains.length}</h3>
                 </div>
-                <div className="p-2 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg text-emerald-500 dark:text-emerald-400">
+                <div className="p-2.5 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/20 rounded-xl text-emerald-500 dark:text-emerald-400 shadow-sm">
                   <Activity className="w-4 h-4" />
                 </div>
               </div>
 
               {/* Stopped/Station Trains */}
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-sm">
+              <div className="backdrop-blur-md bg-white/70 dark:bg-[#0c1322]/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between shadow-sm hover:border-amber-500/40 transition-all">
                 <div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Dwell Status</span>
-                  <h3 className="text-lg font-extrabold mt-1 text-amber-500">{stoppedTrains.length}</h3>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dwell Status</span>
+                  <h3 className="text-xl font-extrabold mt-1 text-amber-500 font-mono">{stoppedTrains.length}</h3>
                 </div>
-                <div className="p-2 bg-amber-500/10 dark:bg-amber-500/20 rounded-lg text-amber-500">
+                <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 rounded-xl text-amber-500 shadow-sm">
                   <MapPin className="w-4 h-4" />
                 </div>
               </div>
 
               {/* Active Network Emergencies */}
-              <div className={`p-4 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
+              <div className={`p-3.5 rounded-2xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
                 activeEmergencies > 0
-                  ? 'bg-rose-500/10 border-rose-500/50 animate-pulse text-rose-500'
-                  : 'bg-white dark:bg-slate-800 border-gray-200/80 dark:border-slate-700/80'
+                  ? 'bg-rose-500/10 border-rose-500/50 animate-pulse text-rose-500 shadow-[0_0_16px_rgba(244,63,94,0.2)]'
+                  : 'backdrop-blur-md bg-white/70 dark:bg-[#0c1322]/70 border-slate-200/80 dark:border-slate-800/80 hover:border-rose-500/30'
               }`}>
                 <div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Emergencies</span>
-                  <h3 className={`text-lg font-extrabold mt-1 ${activeEmergencies > 0 ? 'text-rose-500' : 'text-slate-800 dark:text-slate-100'}`}>{activeEmergencies}</h3>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Emergencies</span>
+                  <h3 className={`text-xl font-extrabold mt-1 font-mono ${activeEmergencies > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>{activeEmergencies}</h3>
                 </div>
-                <div className={`p-2 rounded-lg ${activeEmergencies > 0 ? 'bg-rose-500/20 text-rose-500' : 'bg-slate-500/10 text-gray-400'}`}>
+                <div className={`p-2.5 rounded-xl border ${activeEmergencies > 0 ? 'bg-rose-500/20 border-rose-500/30 text-rose-500' : 'bg-slate-500/10 border-slate-500/20 text-slate-400'}`}>
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
@@ -307,28 +388,30 @@ const SimulationContent: React.FC = () => {
           )}
 
           {/* Main Content Area */}
-          <div className={`flex-1 grid grid-cols-12 gap-3 p-3 overflow-hidden min-h-0 ${mapFullView ? 'grid-cols-1' : ''}`}>
-            {/* Center - Maps */}
+          <div className={`flex-1 grid grid-cols-12 gap-3 p-4 overflow-hidden min-h-0 ${mapFullView ? 'grid-cols-1' : ''}`}>
+            {/* Center - Maps / VDU */}
             <div className={`${mapFullView ? 'col-span-12' : 'col-span-9'} flex flex-col gap-3 min-h-0 overflow-y-auto`}>
-              {/* Railway Corridor Map */}
-              <div className="bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 flex flex-col flex-1 min-h-[400px]">
-                <div className="flex-shrink-0 px-4 pt-3 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-slate-700 flex-wrap gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <MapPin className={`w-4 h-4 ${selectedLineId === 'secr-raipur' ? 'text-amber-500' : 'text-blue-500'}`} />
+              {/* Railway Corridor Map / VDU Card */}
+              <div className="backdrop-blur-md bg-white/80 dark:bg-[#0a0f1d]/90 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex flex-col flex-1 min-h-[400px] shadow-lg overflow-hidden">
+                <div className="flex-shrink-0 px-4 py-3 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 flex-wrap gap-2.5 bg-gradient-to-r from-transparent via-slate-500/[0.02] to-transparent">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl border ${selectedLineId === 'secr-raipur' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' : 'bg-blue-500/10 border-blue-500/30 text-blue-500'}`}>
+                      <MapPin className="w-4 h-4" />
+                    </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        <h2 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                           {selectedLineId === 'secr-raipur'
                             ? 'South East Central Railway (SECR)'
                             : 'Central Railway (CR)'}
                         </h2>
                         {selectedLineId === 'secr-raipur' && (
-                          <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-wider">
-                            DRM Raipur Division HQ
+                          <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/30 uppercase tracking-wider shadow-sm">
+                            ★ DRM Raipur Division HQ
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         {selectedLineId === 'secr-raipur'
                           ? 'Durg Jn — Bhilai Power House — Raipur Junction (Main Part) — Tilda — Bhatapara — Bilaspur Jn'
                           : 'CSMT — Dadar — Kurla — Thane — Dombivli — Kalyan Corridor'}
@@ -336,15 +419,15 @@ const SimulationContent: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     {/* View Mode Selector: VDU Interlocking vs Corridor Map */}
-                    <div className="flex items-center bg-gray-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                       <button
                         onClick={() => setViewMode('vdu')}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                           viewMode === 'vdu'
-                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.4)]'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-emerald-600 text-white font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.35)]'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <Monitor className="w-3.5 h-3.5" />
@@ -352,10 +435,10 @@ const SimulationContent: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setViewMode('map')}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                           viewMode === 'map'
-                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.4)]'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.35)]'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <MapPin className="w-3.5 h-3.5" />
@@ -364,13 +447,13 @@ const SimulationContent: React.FC = () => {
                     </div>
 
                     {/* Corridor Selector */}
-                    <div className="flex items-center bg-gray-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                       <button
                         onClick={() => setSelectedLineId('secr-raipur')}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                           selectedLineId === 'secr-raipur'
-                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.4)]'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.35)]'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <span className="w-2 h-2 rounded-full bg-amber-400 border border-slate-950" />
@@ -378,10 +461,10 @@ const SimulationContent: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setSelectedLineId('csmt-kalyan')}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                           selectedLineId === 'csmt-kalyan'
-                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.4)]'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.35)]'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <span className="w-2 h-2 rounded-full bg-blue-300 border border-slate-950" />
@@ -391,13 +474,13 @@ const SimulationContent: React.FC = () => {
 
                     <button
                       onClick={() => setMapFullView(!mapFullView)}
-                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/60 dark:border-slate-800"
                       title={mapFullView ? 'Exit full view' : 'View full screen'}
                     >
                       {mapFullView ? (
-                        <Minimize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <Minimize2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                       ) : (
-                        <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <Maximize2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                       )}
                     </button>
                   </div>
@@ -425,17 +508,16 @@ const SimulationContent: React.FC = () => {
               </div>
             </div>
 
-
             {/* Right Sidebar - Tabbed Interface */}
             {!mapFullView && (
             <div className="col-span-3 flex flex-col gap-3 overflow-hidden min-h-0">
               {/* Tab Navigation */}
-              <div className="bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-1 flex gap-1 overflow-x-auto">
+              <div className="backdrop-blur-md bg-white/80 dark:bg-[#0a0f1d]/90 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-1 flex gap-1 shadow-md overflow-x-auto flex-shrink-0">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'overview'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'overview'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
@@ -443,9 +525,9 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('trains')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'trains'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'trains'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <Train className="w-3.5 h-3.5" />
@@ -453,9 +535,9 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('timetable')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'timetable'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'timetable'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
@@ -463,9 +545,9 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('logs')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'logs'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'logs'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <FileText className="w-3.5 h-3.5" />
@@ -473,9 +555,9 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('controls')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'controls'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'controls'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <Settings className="w-3.5 h-3.5" />
@@ -483,19 +565,19 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('ai')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'ai'
-                      ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'ai'
+                      ? 'bg-emerald-600 text-white font-bold shadow-[0_0_12px_rgba(16,185,129,0.35)]'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
-                  <Brain className="w-3.5 h-3.5" />
+                  <Brain className="w-3.5 h-3.5 text-emerald-300" />
                   AI
                 </button>
                 <button
                   onClick={() => setActiveTab('vdu')}
-                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'vdu'
-                      ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'vdu'
+                      ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.35)]'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
                   <Monitor className="w-3.5 h-3.5" />

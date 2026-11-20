@@ -160,7 +160,18 @@ async function tick(): Promise<void> {
     }
   }
 
-  trainStates = newStates;
+    trainStates = newStates;
+
+    // Continuous loop: if all trains completed or past morning shift, reset back to 06:00 AM
+    const hoursElapsed = ((Date.now() - simulationStartRealTime) * simulationSpeedMultiplier) / (3600 * 1000);
+    if (hoursElapsed > 2.0 && trainStates.size === 0) {
+      console.log("[Simulator] All morning trains completed. Resetting simulation clock to 06:00:00 AM for 24/7 continuous simulation...");
+      simulationStartRealTime = Date.now();
+      simulationBaseDate = new Date();
+      simulationBaseDate.setHours(6, 0, 0, 0);
+      trainStates = new Map();
+      secrTrainStates = new Map();
+    }
 
   // Log status every 10 ticks (20 seconds)
   if (tickCount % 10 === 0) {

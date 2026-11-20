@@ -28,7 +28,7 @@ export const PlatformStatusBoard: React.FC<Props> = ({ platforms, station }) => 
   const occupiedCount = filtered.filter((p) => p.state === 'occupied').length
 
   return (
-    <div className="bg-[#0a0e1a] border border-slate-700/60 rounded-lg overflow-hidden">
+    <div className="bg-[#0a0e1a] border border-slate-700/60 rounded-xl overflow-hidden shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-900/80 border-b border-slate-700/50">
         <div className="flex items-center gap-2">
