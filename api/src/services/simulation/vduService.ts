@@ -177,10 +177,10 @@ function initVduState(): MutableVduState {
     ...RAIPUR_PLATFORMS,
     ...DURG_PLATFORMS,
     ...BSP_PLATFORMS,
-  ].map((p) => ({ ...p, occupied_by: null, state: 'clear' as const }));
+  ].map((p): PlatformState => ({ ...p, occupied_by: null as string | null, state: 'clear' as const }));
 
   // Build initial point machines (all Normal/detected/healthy)
-  const pointMachines: PointMachine[] = STATIC_POINT_MACHINES.map((pm) => ({
+  const pointMachines: PointMachine[] = STATIC_POINT_MACHINES.map((pm): PointMachine => ({
     ...pm,
     position: 'Normal' as const,
     detection: 'detected' as const,
@@ -200,19 +200,19 @@ function initVduState(): MutableVduState {
   if (maintPm) maintPm.status = 'under_maintenance';
 
   // Build axle counters (all clear)
-  const axleCounters: AxleCounter[] = STATIC_AXLE_COUNTERS.map((ac) => ({
+  const axleCounters: AxleCounter[] = STATIC_AXLE_COUNTERS.map((ac): AxleCounter => ({
     ...ac,
     state: 'clear' as const,
-    train_id: null,
+    train_id: null as string | null,
     count_in: 0,
     count_out: 0,
   }));
 
   // Build signals (all red by default — NX interlocking)
-  const signals: SignalAspect[] = STATIC_SIGNALS.map((s) => ({
+  const signals: SignalAspect[] = STATIC_SIGNALS.map((s): SignalAspect => ({
     ...s,
     aspect: 'red' as const,
-    speed_kmh: null,
+    speed_kmh: null as number | null,
   }));
 
   // Set some to green/yellow for realism

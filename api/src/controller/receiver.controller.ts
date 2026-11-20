@@ -85,7 +85,7 @@ export class ReceiverController {
 
       // Update VDU state from live telemetry (SECR corridor only)
       if (payload.line_id === "secr-raipur") {
-        const stationName = updatedTrain.currentPipeline?.split("_")[0] || undefined;
+        const stationName = payload.sectorId?.split("_")[0] || payload.destination || undefined;
         updateVduFromTrain(payload.train_id, payload.speed, payload.lat, payload.lng, stationName);
       }
 
