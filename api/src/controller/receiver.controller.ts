@@ -5,6 +5,7 @@ import { TimetableService } from "../services/receiver/timetableService";
 import { TrainLogService } from "../services/simulation/trainLogService";
 import { TrainLogEventType } from "../Interfaces/simulation/trainLog.interface";
 import auditLogRepository from "../db/repositories/auditLogRepository";
+import { updateVduFromTrain } from "../services/simulation/vduService";
 
 export class ReceiverController {
   private trainStore: TrainStore;
@@ -81,6 +82,12 @@ export class ReceiverController {
 
       // Log train events
       this.logTrainEvents(existingTrain, updatedTrain, isNewTrain);
+
+      // Update VDU state from live telemetry (SECR corridor only)
+      if (payload.line_id === "secr-raipur") {
+        const stationName = updatedTrain.currentPipeline?.split("_")[0] || undefined;
+        updateVduFromTrain(payload.train_id, payload.speed, payload.lat, payload.lng, stationName);
+      }
 
       res.status(200).json({
         success: true,

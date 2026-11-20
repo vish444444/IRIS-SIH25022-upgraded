@@ -15,6 +15,7 @@ import { TrackClosurePanel } from '../components/simulation/TrackClosurePanel'
 import { SectorBlockagePanel } from '../components/simulation/SectorBlockagePanel'
 import { TimetablePanel } from '../components/simulation/TimetablePanel'
 import { TrainLogsPanel } from '../components/simulation/TrainLogsPanel'
+import { VduDisplay } from '../components/simulation/vdu/VduDisplay'
 import { TrainUpdate, TrainState } from '../types/simulation.types'
 import { LineId } from '../types/liveTrains.types'
 import { ModeToggle } from '../components/ModeToggle'
@@ -36,7 +37,8 @@ import {
   TrendingUp,
   Zap,
   LayoutDashboard,
-  Brain
+  Brain,
+  Monitor
 } from 'lucide-react'
 
 const getApiBaseUrl = () => {
@@ -63,9 +65,10 @@ const SimulationContent: React.FC = () => {
   >(null)
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [selectedLineId, setSelectedLineId] = useState<LineId>('secr-raipur')
-  const [activeTab, setActiveTab] = useState<'overview' | 'trains' | 'timetable' | 'logs' | 'controls' | 'ai'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'trains' | 'timetable' | 'logs' | 'controls' | 'ai' | 'vdu'>('overview')
   const [receiverStats, setReceiverStats] = useState<any>(null)
   const [mapFullView, setMapFullView] = useState(false)
+  const [viewMode, setViewMode] = useState<'vdu' | 'map'>('vdu')
 
   // Check if simulator is running by checking if receiver has train data and control state
   useEffect(() => {
@@ -334,6 +337,32 @@ const SimulationContent: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* View Mode Selector: VDU Interlocking vs Corridor Map */}
+                    <div className="flex items-center bg-gray-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
+                      <button
+                        onClick={() => setViewMode('vdu')}
+                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                          viewMode === 'vdu'
+                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.4)]'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <Monitor className="w-3.5 h-3.5" />
+                        DRM VDU (Interlocking)
+                      </button>
+                      <button
+                        onClick={() => setViewMode('map')}
+                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                          viewMode === 'map'
+                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.4)]'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        Corridor Map
+                      </button>
+                    </div>
+
                     {/* Corridor Selector */}
                     <div className="flex items-center bg-gray-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
                       <button
@@ -373,16 +402,25 @@ const SimulationContent: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-hidden relative min-h-[350px]">
-                  <JsonCorridorMap
-                    onTrainClick={handleTrainClick}
-                    focusedTrainId={focusedTrainId}
-                    focusedSectorId={focusedSectorId}
-                    lineId={selectedLineId}
-                    onSectorBlockageUpdate={() => {
-                      // Refresh can be handled by the component itself
-                    }}
-                  />
+                <div className="flex-1 overflow-y-auto relative min-h-[350px]">
+                  {viewMode === 'vdu' ? (
+                    <VduDisplay
+                      corridor={selectedLineId}
+                      liveTrains={Array.from(trains.values())}
+                      onTrainClick={handleTrainClick}
+                      onOpenAiRecommendation={() => setActiveTab('ai')}
+                    />
+                  ) : (
+                    <JsonCorridorMap
+                      onTrainClick={handleTrainClick}
+                      focusedTrainId={focusedTrainId}
+                      focusedSectorId={focusedSectorId}
+                      lineId={selectedLineId}
+                      onSectorBlockageUpdate={() => {
+                        // Refresh can be handled by the component itself
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -452,6 +490,16 @@ const SimulationContent: React.FC = () => {
                 >
                   <Brain className="w-3.5 h-3.5" />
                   AI
+                </button>
+                <button
+                  onClick={() => setActiveTab('vdu')}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'vdu'
+                      ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                    }`}
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                  VDU
                 </button>
               </div>
 
@@ -594,6 +642,17 @@ const SimulationContent: React.FC = () => {
                     <AIRecommendationPanel automaticAnalysis={automaticAnalysis} />
                     <DemoMode />
                     <KPIDashboard />
+                  </div>
+                )}
+
+                {activeTab === 'vdu' && (
+                  <div className="flex flex-col gap-3">
+                    <VduDisplay
+                      corridor={selectedLineId}
+                      liveTrains={Array.from(trains.values())}
+                      onTrainClick={handleTrainClick}
+                      onOpenAiRecommendation={() => setActiveTab('ai')}
+                    />
                   </div>
                 )}
               </div>

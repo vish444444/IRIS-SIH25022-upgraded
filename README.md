@@ -61,6 +61,44 @@ IRIS features a multi-corridor engine with an instant corridor switcher in the U
 
 ---
 
+## 🖥️ DRM Office Visual Display Unit (VDU) Interlocking System
+
+Modeled directly after the **Electronic Interlocking (EI / Route Relay Interlocking Class-II NX Type)** consoles used in Indian Railways Divisional Control Offices (such as **DRM Raipur Central Cabin**):
+
+### 1. Interactive Station Interlocking Schematic
+- **Full Track Topology**: Scalable CAD-style SVG schematic with zoom controls (70% - 140%).
+- **Luminous Track Circuits (TC)**: Dynamic glow effects — turns **Luminous Red** on train occupancy, **Amber** on route-locking, and **Cyan** when clear.
+- **Directional Feed Tracks**: Clear demarcation of Up Line (towards Bhilai/Durg) and Down Line (towards Bilaspur).
+- **Central Station Cabin**: Gold-highlighted **★ DRM RAIPUR HQ** dispatch marker.
+
+### 2. Platform Status Board (Raipur Jn 7 Platforms)
+- **Platform 1 (Main Up)** & **Platform 2 (Main Down)**: 648m full rake berthing capacity.
+- **Platforms 3, 4, 5 (Loop Lines A, B, C)**: 450m - 540m loop lines for precedence overtaking.
+- **Platform 6 (Goods Road)**: 420m freight rake reception and dispatch.
+- **Platform 7 (Coaching / Reserve)**: 350m stabling & inspection pit line.
+- **Real-Time Indicators**: Live train describer tags (`▶ SECR_VB_20825`), occupation badges (`OCC`), reserved status (`RSVD`), and ETA calculations.
+
+### 3. Point Machines (Turnout Switches) Panel
+- **Point IDs**: Monitored turnouts `Pt 1A`, `1B`, `3A`, `5A`, `5B`, `7A`, `10A`, `10B`, `12A`, `15A`.
+- **Operational States**: Live detection of **Normal (N)** and **Reverse (R)** switch blade alignment.
+- **Detection Proving**: Real-time **KR Proved** (Detection healthy) vs **Out of Correspondence (Fault)** indication.
+- **Filter Controls**: Filter by Normal, Reverse, or Faulted point machines.
+
+### 4. Axle Counters (MSDAC / Track Circuits) Grid
+- **Block Sections**: Covers Durg–BPHB, BPHB–Raipur, Raipur Platform track circuits, Raipur–Tilda, and Tilda–Bhatapara.
+- **Wheel Counts**: Real-time incoming count (`IN`) vs outgoing count (`OUT`) to verify axle count parity.
+- **Circuit States**: `CLEAR`, `OCCUPIED` (with animated pulse), or `RESET REQUIRED` (SSDAC reset safety protocol).
+
+### 5. Multi-Aspect Colour Light Signalling (MACLS) Panel
+- **Signal Types**: Home (UH/DH), Starter (US1/US2/DS1/DS2), Advanced Starter (UAS/DAS), and Distant (UD/DD).
+- **Realistic 3-Aspect & 4-Aspect Signal Heads**:
+  - 🟢 **Green (Proceed)**: Normal line speed (110–130 km/h).
+  - 🟡 **Yellow (Caution)**: Prepare to stop at next signal (45 km/h).
+  - 🔴 **Red (Danger)**: Absolute stop enforced by electronic interlocking.
+  - 🟡🟡 **Double Yellow (Attention)**: Prepare to pass next signal at restricted speed.
+
+---
+
 ## 🏛️ System Architecture
 
 IRIS implements a **6-Layer Decision-Support Pipeline** ensuring that AI recommendations are fast, optimal, mathematically provable, and never override hard safety invariants.

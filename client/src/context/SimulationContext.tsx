@@ -178,26 +178,36 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
         setTrains(trainsMap);
 
         const contenders = Array.from(trainsMap.values()).filter(
-          (train) => train.currentSection && train.state !== TrainState.SCHEDULED
+          (train) => (train.currentSection || train.currentPipeline) && train.state !== TrainState.SCHEDULED
         );
         const bySection = new Map<string, TrainUpdate[]>();
         contenders.forEach((train) => {
-          const group = bySection.get(train.currentSection!) || [];
+          const key = train.currentSection || train.currentPipeline?.split('_')[0] || 'MAIN';
+          const group = bySection.get(key) || [];
           group.push(train);
-          bySection.set(train.currentSection!, group);
+          bySection.set(key, group);
         });
         const conflictGroup = Array.from(bySection.values()).find((group) => group.length > 1);
         if (conflictGroup) {
+          const getPriority = (id: string, trainClass?: string): number => {
+            const upper = id.toUpperCase();
+            if (upper.includes('VB') || upper.includes('VANDE')) return 1;
+            if (upper.includes('EXP') || upper.includes('INT') || trainClass === 'Fast Local') return 2;
+            if (upper.includes('MEMU') || trainClass === 'Slow Local') return 3;
+            if (upper.includes('COAL') || upper.includes('STEEL') || upper.includes('FREIGHT')) return 4;
+            return 3;
+          };
+
           const conflictTrains: ConflictTrainInput[] = conflictGroup.map((train, index) => ({
             train_id: train.id,
-            resource_id: train.currentSection!,
-            priority: train.class === 'Fast Local' ? 1 : index + 2,
+            resource_id: train.currentSection || train.currentPipeline?.split('_')[0] || 'JUNCTION',
+            priority: getPriority(train.id, train.class),
             requested_entry_sec: index * 30,
             transit_seconds: 90,
             prediction: {
               current_delay_min: train.delay || 0,
-              current_speed_kmh: train.gps.speed,
-              previous_speed_kmh: train.previousSpeed || train.gps.speed,
+              current_speed_kmh: train.gps?.speed || train.speed * 3.6 || 0,
+              previous_speed_kmh: train.previousSpeed || train.gps?.speed || 0,
               section_occupancy: 1,
               trains_ahead: index,
               disruption_active: train.disruptionActive || false,
