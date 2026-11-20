@@ -1,7 +1,7 @@
 export type TrainType = "slow" | "fast" | "womens" | "ac";
 
 // Supported railway line identifiers
-export type LineId = "csmt-kalyan" | "csmt-panvel";
+export type LineId = "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
 
 export interface TrainReceiverPayload {
   train_id: string;

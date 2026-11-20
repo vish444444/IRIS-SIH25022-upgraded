@@ -72,8 +72,28 @@ export class TimetableService {
       }
 
       const rawData = fs.readFileSync(timetablePath, "utf-8");
-      this.timetable = JSON.parse(rawData);
-      console.log(`[TimetableService] Loaded ${this.timetable.length} trains from timetable`);
+      const crTrains = JSON.parse(rawData);
+
+      // Also load SECR Raipur timetable
+      let secrTrains: TimetableEntry[] = [];
+      const possibleSecrPaths = [
+        path.join(__dirname, "../../../../simulator/secrTimetable.json"),
+        path.join(__dirname, "../../../simulator/secrTimetable.json"),
+        path.join(__dirname, "../simulation/secrTimetable.json"),
+        path.resolve(process.cwd(), "simulator/secrTimetable.json"),
+        path.resolve(process.cwd(), "../simulator/secrTimetable.json"),
+      ];
+      for (const p of possibleSecrPaths) {
+        if (fs.existsSync(p)) {
+          try {
+            secrTrains = JSON.parse(fs.readFileSync(p, "utf-8"));
+            break;
+          } catch {}
+        }
+      }
+
+      this.timetable = [...crTrains, ...secrTrains];
+      console.log(`[TimetableService] Loaded ${this.timetable.length} trains from timetables (CR: ${crTrains.length}, SECR: ${secrTrains.length})`);
     } catch (error) {
       console.error("[TimetableService] Error loading timetable:", error);
       this.timetable = [];

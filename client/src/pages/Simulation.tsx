@@ -16,6 +16,7 @@ import { SectorBlockagePanel } from '../components/simulation/SectorBlockagePane
 import { TimetablePanel } from '../components/simulation/TimetablePanel'
 import { TrainLogsPanel } from '../components/simulation/TrainLogsPanel'
 import { TrainUpdate, TrainState } from '../types/simulation.types'
+import { LineId } from '../types/liveTrains.types'
 import { ModeToggle } from '../components/ModeToggle'
 import axios from 'axios'
 import { toast } from 'sonner'
@@ -61,6 +62,7 @@ const SimulationContent: React.FC = () => {
     string | null
   >(null)
   const [simulationRunning, setSimulationRunning] = useState(false)
+  const [selectedLineId, setSelectedLineId] = useState<LineId>('secr-raipur')
   const [activeTab, setActiveTab] = useState<'overview' | 'trains' | 'timetable' | 'logs' | 'controls' | 'ai'>('overview')
   const [receiverStats, setReceiverStats] = useState<any>(null)
   const [mapFullView, setMapFullView] = useState(false)
@@ -305,14 +307,59 @@ const SimulationContent: React.FC = () => {
           <div className={`flex-1 grid grid-cols-12 gap-3 p-3 overflow-hidden min-h-0 ${mapFullView ? 'grid-cols-1' : ''}`}>
             {/* Center - Maps */}
             <div className={`${mapFullView ? 'col-span-12' : 'col-span-9'} flex flex-col gap-3 min-h-0 overflow-y-auto`}>
-              {/* Central Railway Corridor Map */}
+              {/* Railway Corridor Map */}
               <div className="bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 flex flex-col flex-1 min-h-[400px]">
-                <div className="flex-shrink-0 px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-slate-700">
-                  <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Central Railway - CSMT to Kalyan Corridor
-                  </h2>
+                <div className="flex-shrink-0 px-4 pt-3 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-slate-700 flex-wrap gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <MapPin className={`w-4 h-4 ${selectedLineId === 'secr-raipur' ? 'text-amber-500' : 'text-blue-500'}`} />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                          {selectedLineId === 'secr-raipur'
+                            ? 'South East Central Railway (SECR)'
+                            : 'Central Railway (CR)'}
+                        </h2>
+                        {selectedLineId === 'secr-raipur' && (
+                          <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-wider">
+                            DRM Raipur Division HQ
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        {selectedLineId === 'secr-raipur'
+                          ? 'Durg Jn — Bhilai Power House — Raipur Junction (Main Part) — Tilda — Bhatapara — Bilaspur Jn'
+                          : 'CSMT — Dadar — Kurla — Thane — Dombivli — Kalyan Corridor'}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="flex items-center gap-2">
+                    {/* Corridor Selector */}
+                    <div className="flex items-center bg-gray-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
+                      <button
+                        onClick={() => setSelectedLineId('secr-raipur')}
+                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                          selectedLineId === 'secr-raipur'
+                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.4)]'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-amber-400 border border-slate-950" />
+                        SECR Raipur (DRM)
+                      </button>
+                      <button
+                        onClick={() => setSelectedLineId('csmt-kalyan')}
+                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                          selectedLineId === 'csmt-kalyan'
+                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.4)]'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-blue-300 border border-slate-950" />
+                        CR (CSMT-Kalyan)
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => setMapFullView(!mapFullView)}
                       className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
@@ -331,6 +378,7 @@ const SimulationContent: React.FC = () => {
                     onTrainClick={handleTrainClick}
                     focusedTrainId={focusedTrainId}
                     focusedSectorId={focusedSectorId}
+                    lineId={selectedLineId}
                     onSectorBlockageUpdate={() => {
                       // Refresh can be handled by the component itself
                     }}

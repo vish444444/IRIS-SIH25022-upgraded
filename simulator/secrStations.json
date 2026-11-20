@@ -1,0 +1,145 @@
+{
+  "line_id": "secr-raipur",
+  "stations": [
+    {
+      "code": "DURG",
+      "name": "Durg Junction",
+      "lat": 21.1895,
+      "lng": 81.2828,
+      "order": 1
+    },
+    {
+      "code": "BPHB",
+      "name": "Bhilai Power House",
+      "lat": 21.2091,
+      "lng": 81.3653,
+      "order": 2
+    },
+    {
+      "code": "BIA",
+      "name": "Bhilai",
+      "lat": 21.2144,
+      "lng": 81.4089,
+      "order": 3
+    },
+    {
+      "code": "KMI",
+      "name": "Kumhari",
+      "lat": 21.2294,
+      "lng": 81.5147,
+      "order": 4
+    },
+    {
+      "code": "SZB",
+      "name": "Sarona",
+      "lat": 21.2403,
+      "lng": 81.5724,
+      "order": 5
+    },
+    {
+      "code": "SRWN",
+      "name": "Saraswati Nagar",
+      "lat": 21.2472,
+      "lng": 81.6033,
+      "order": 6
+    },
+    {
+      "code": "R",
+      "name": "Raipur Junction (DRM HQ)",
+      "lat": 21.2588,
+      "lng": 81.6296,
+      "order": 7
+    },
+    {
+      "code": "WRC",
+      "name": "WRS Colony",
+      "lat": 21.2721,
+      "lng": 81.642,
+      "order": 8
+    },
+    {
+      "code": "URK",
+      "name": "Urkura",
+      "lat": 21.2947,
+      "lng": 81.6521,
+      "order": 9
+    },
+    {
+      "code": "MDH",
+      "name": "Mandhar",
+      "lat": 21.3533,
+      "lng": 81.6782,
+      "order": 10
+    },
+    {
+      "code": "SLH",
+      "name": "Silyari",
+      "lat": 21.439,
+      "lng": 81.6967,
+      "order": 11
+    },
+    {
+      "code": "BKTH",
+      "name": "Baikunth",
+      "lat": 21.5031,
+      "lng": 81.7145,
+      "order": 12
+    },
+    {
+      "code": "TLD",
+      "name": "Tilda Neora",
+      "lat": 21.5615,
+      "lng": 81.7481,
+      "order": 13
+    },
+    {
+      "code": "HN",
+      "name": "Hathbandh",
+      "lat": 21.6508,
+      "lng": 81.7963,
+      "order": 14
+    },
+    {
+      "code": "BYT",
+      "name": "Bhatapara",
+      "lat": 21.7381,
+      "lng": 81.8291,
+      "order": 15
+    },
+    {
+      "code": "NPI",
+      "name": "Nipania",
+      "lat": 21.849,
+      "lng": 81.8972,
+      "order": 16
+    },
+    {
+      "code": "DGS",
+      "name": "Dagori",
+      "lat": 21.9211,
+      "lng": 81.9723,
+      "order": 17
+    },
+    {
+      "code": "BYL",
+      "name": "Belha",
+      "lat": 21.9682,
+      "lng": 82.0289,
+      "order": 18
+    },
+    {
+      "code": "DPH",
+      "name": "Dadhapara",
+      "lat": 22.0322,
+      "lng": 82.0911,
+      "order": 19
+    },
+    {
+      "code": "BSP",
+      "name": "Bilaspur Junction",
+      "lat": 22.0805,
+      "lng": 82.1648,
+      "order": 20
+    }
+  ]
+}

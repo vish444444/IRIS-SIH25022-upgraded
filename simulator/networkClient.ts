@@ -7,7 +7,7 @@ export interface ReceiverPayload {
   lng: number;
   speed: number;
   type: TrainType;
-  line_id: "csmt-kalyan" | "csmt-panvel";
+  line_id: "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
   destination: string;
   timestamp: number;
   // Track allocation info
@@ -31,7 +31,7 @@ export function trainStateToPayload(state: TrainState, simTime?: number): Receiv
     lng: state.lng,
     speed: Math.round(state.speed * 100) / 100, // Round to 2 decimal places
     type: state.type,
-    line_id: "csmt-kalyan",
+    line_id: ((state as any).line_id || (state.train_id.startsWith("SECR") ? "secr-raipur" : "csmt-kalyan")) as any,
     destination: state.destination,
     timestamp: simTime || Date.now(),
     trackType: state.trackType,

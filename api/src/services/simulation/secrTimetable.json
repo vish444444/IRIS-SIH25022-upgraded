@@ -1,0 +1,445 @@
+[
+  {
+    "train_id": "SECR_VB_20825",
+    "trip_id": "SECR_VB_20825_06:05",
+    "pattern_id": "secr_bsp_durg_vb",
+    "service_type": "fast",
+    "train_subtype": "vande_bharat",
+    "rake_type": "VB_16",
+    "rake_length": "16_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_fast",
+    "track_type": "down_fast",
+    "track_variant": "down_fast_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "BSP",
+    "to": "DURG",
+    "departure": "06:05",
+    "peak": false,
+    "color": "#FF9500",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": true,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "BSP",
+        "arrival": "06:05",
+        "departure": "06:05"
+      },
+      {
+        "station": "BYT",
+        "arrival": "06:30",
+        "departure": "06:32"
+      },
+      {
+        "station": "TLD",
+        "arrival": "06:50",
+        "departure": "06:51"
+      },
+      {
+        "station": "R",
+        "arrival": "07:20",
+        "departure": "07:25"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "07:50",
+        "departure": "07:52"
+      },
+      {
+        "station": "DURG",
+        "arrival": "08:05",
+        "departure": "08:05"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_MEMU_08701",
+    "trip_id": "SECR_MEMU_08701_06:10",
+    "pattern_id": "secr_r_durg_memu",
+    "service_type": "slow",
+    "train_subtype": "memu",
+    "rake_type": "MEMU_8",
+    "rake_length": "8_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_slow",
+    "track_type": "down_slow",
+    "track_variant": "down_slow_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "R",
+    "to": "DURG",
+    "departure": "06:10",
+    "peak": false,
+    "color": "#007AFF",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "R",
+        "arrival": "06:10",
+        "departure": "06:10"
+      },
+      {
+        "station": "SRWN",
+        "arrival": "06:15",
+        "departure": "06:16"
+      },
+      {
+        "station": "SZB",
+        "arrival": "06:20",
+        "departure": "06:21"
+      },
+      {
+        "station": "KMI",
+        "arrival": "06:25",
+        "departure": "06:26"
+      },
+      {
+        "station": "BIA",
+        "arrival": "06:30",
+        "departure": "06:31"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "06:35",
+        "departure": "06:36"
+      },
+      {
+        "station": "DURG",
+        "arrival": "06:40",
+        "departure": "06:40"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_MEMU_08702",
+    "trip_id": "SECR_MEMU_08702_06:15",
+    "pattern_id": "secr_durg_r_memu",
+    "service_type": "slow",
+    "train_subtype": "memu",
+    "rake_type": "MEMU_8",
+    "rake_length": "8_car",
+    "direction": "UP",
+    "line_type": "UP_slow",
+    "track_type": "up_slow",
+    "track_variant": "up_slow_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "DURG",
+    "to": "R",
+    "departure": "06:15",
+    "peak": false,
+    "color": "#34C759",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "DURG",
+        "arrival": "06:15",
+        "departure": "06:15"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "06:20",
+        "departure": "06:21"
+      },
+      {
+        "station": "BIA",
+        "arrival": "06:25",
+        "departure": "06:26"
+      },
+      {
+        "station": "KMI",
+        "arrival": "06:30",
+        "departure": "06:31"
+      },
+      {
+        "station": "SZB",
+        "arrival": "06:35",
+        "departure": "06:36"
+      },
+      {
+        "station": "SRWN",
+        "arrival": "06:40",
+        "departure": "06:41"
+      },
+      {
+        "station": "R",
+        "arrival": "06:45",
+        "departure": "06:45"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_INT_12855",
+    "trip_id": "SECR_INT_12855_06:20",
+    "pattern_id": "secr_bsp_itwari_intercity",
+    "service_type": "fast",
+    "train_subtype": "superfast",
+    "rake_type": "LHB_22",
+    "rake_length": "22_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_fast",
+    "track_type": "down_fast",
+    "track_variant": "down_fast_2",
+    "lane_index": 1,
+    "lane_count": 2,
+    "from": "BSP",
+    "to": "DURG",
+    "departure": "06:20",
+    "peak": false,
+    "color": "#FF3B30",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "BSP",
+        "arrival": "06:20",
+        "departure": "06:22"
+      },
+      {
+        "station": "BYL",
+        "arrival": "06:34",
+        "departure": "06:36"
+      },
+      {
+        "station": "BYT",
+        "arrival": "06:48",
+        "departure": "06:50"
+      },
+      {
+        "station": "HN",
+        "arrival": "07:02",
+        "departure": "07:04"
+      },
+      {
+        "station": "TLD",
+        "arrival": "07:16",
+        "departure": "07:18"
+      },
+      {
+        "station": "R",
+        "arrival": "07:30",
+        "departure": "07:32"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "07:44",
+        "departure": "07:46"
+      },
+      {
+        "station": "DURG",
+        "arrival": "07:58",
+        "departure": "08:00"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_EXP_18237",
+    "trip_id": "SECR_EXP_18237_06:25",
+    "pattern_id": "secr_chhattisgarh_express",
+    "service_type": "fast",
+    "train_subtype": "mail_express",
+    "rake_type": "ICF_24",
+    "rake_length": "24_car",
+    "direction": "UP",
+    "line_type": "UP_fast",
+    "track_type": "up_fast",
+    "track_variant": "up_fast_1",
+    "lane_index": 0,
+    "lane_count": 2,
+    "from": "DURG",
+    "to": "BSP",
+    "departure": "06:25",
+    "peak": false,
+    "color": "#AF52DE",
+    "speed_profile": "fast",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": true,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "DURG",
+        "arrival": "06:25",
+        "departure": "06:28"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "06:41",
+        "departure": "06:44"
+      },
+      {
+        "station": "R",
+        "arrival": "06:57",
+        "departure": "07:00"
+      },
+      {
+        "station": "WRC",
+        "arrival": "07:13",
+        "departure": "07:16"
+      },
+      {
+        "station": "TLD",
+        "arrival": "07:29",
+        "departure": "07:32"
+      },
+      {
+        "station": "BYT",
+        "arrival": "07:45",
+        "departure": "07:48"
+      },
+      {
+        "station": "BSP",
+        "arrival": "08:01",
+        "departure": "08:04"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_COAL_BOXN_1",
+    "trip_id": "SECR_COAL_BOXN_1_06:00",
+    "pattern_id": "secr_coal_freight",
+    "service_type": "slow",
+    "train_subtype": "freight",
+    "rake_type": "BOXN_58",
+    "rake_length": "58_car",
+    "direction": "DOWN",
+    "line_type": "DOWN_slow",
+    "track_type": "down_slow",
+    "track_variant": "down_slow_2",
+    "lane_index": 1,
+    "lane_count": 2,
+    "from": "BSP",
+    "to": "DURG",
+    "departure": "06:00",
+    "peak": false,
+    "color": "#78716C",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "BSP",
+        "arrival": "06:00",
+        "departure": "06:01"
+      },
+      {
+        "station": "BYT",
+        "arrival": "06:20",
+        "departure": "06:21"
+      },
+      {
+        "station": "TLD",
+        "arrival": "06:40",
+        "departure": "06:41"
+      },
+      {
+        "station": "URK",
+        "arrival": "07:00",
+        "departure": "07:01"
+      },
+      {
+        "station": "R",
+        "arrival": "07:20",
+        "departure": "07:21"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "07:40",
+        "departure": "07:41"
+      },
+      {
+        "station": "DURG",
+        "arrival": "08:00",
+        "departure": "08:01"
+      }
+    ]
+  },
+  {
+    "train_id": "SECR_STEEL_BFNS_2",
+    "trip_id": "SECR_STEEL_BFNS_2_06:30",
+    "pattern_id": "secr_steel_freight",
+    "service_type": "slow",
+    "train_subtype": "freight",
+    "rake_type": "BFNS_45",
+    "rake_length": "45_car",
+    "direction": "UP",
+    "line_type": "UP_fast",
+    "track_type": "up_fast",
+    "track_variant": "up_fast_2",
+    "lane_index": 1,
+    "lane_count": 2,
+    "from": "DURG",
+    "to": "BSP",
+    "departure": "06:30",
+    "peak": false,
+    "color": "#475569",
+    "speed_profile": "slow",
+    "flags": {
+      "is_ac": false,
+      "is_womens": false,
+      "is_fast": false,
+      "is_peak_service": false
+    },
+    "stop_times": [
+      {
+        "station": "DURG",
+        "arrival": "06:30",
+        "departure": "06:32"
+      },
+      {
+        "station": "BPHB",
+        "arrival": "06:52",
+        "departure": "06:54"
+      },
+      {
+        "station": "R",
+        "arrival": "07:14",
+        "departure": "07:16"
+      },
+      {
+        "station": "TLD",
+        "arrival": "07:36",
+        "departure": "07:38"
+      },
+      {
+        "station": "BYT",
+        "arrival": "07:58",
+        "departure": "08:00"
+      },
+      {
+        "station": "BSP",
+        "arrival": "08:20",
+        "departure": "08:22"
+      }
+    ]
+  }
+]

@@ -108,12 +108,12 @@ export class TrackStatusController {
    */
   getStations = (req: Request, res: Response, next: NextFunction): void => {
     try {
-      // Read track data from JSON file
-      // Handle both development and production paths
+      const isSecr = req.query.corridor === "secr-raipur" || req.query.line_id === "secr-raipur";
+      const filename = isSecr ? "sampleTrackSecrRaipurData.json" : "sampleTrackData.json";
       const possiblePaths = [
-        path.join(__dirname, "../services/simulation/sampleTrackData.json"),
-        path.join(process.cwd(), "src/services/simulation/sampleTrackData.json"),
-        path.join(process.cwd(), "api/src/services/simulation/sampleTrackData.json"),
+        path.join(__dirname, "../services/simulation", filename),
+        path.join(process.cwd(), "src/services/simulation", filename),
+        path.join(process.cwd(), "api/src/services/simulation", filename),
       ];
       
       let trackDataPath = possiblePaths.find((p) => fs.existsSync(p));
@@ -161,12 +161,12 @@ export class TrackStatusController {
    */
   getTrackInfo = (req: Request, res: Response, next: NextFunction): void => {
     try {
-      // Read track data from JSON file
-      // Handle both development and production paths
+      const isSecr = req.query.corridor === "secr-raipur" || req.query.line_id === "secr-raipur";
+      const filename = isSecr ? "sampleTrackSecrRaipurData.json" : "sampleTrackData.json";
       const possiblePaths = [
-        path.join(__dirname, "../services/simulation/sampleTrackData.json"),
-        path.join(process.cwd(), "src/services/simulation/sampleTrackData.json"),
-        path.join(process.cwd(), "api/src/services/simulation/sampleTrackData.json"),
+        path.join(__dirname, "../services/simulation", filename),
+        path.join(process.cwd(), "src/services/simulation", filename),
+        path.join(process.cwd(), "api/src/services/simulation", filename),
       ];
       
       let trackDataPath = possiblePaths.find((p) => fs.existsSync(p));

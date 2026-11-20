@@ -91,6 +91,29 @@ export function loadTimetable(baseDate: Date): TrainEntry[] {
 }
 
 /**
+ * Loads SECR timetable for South East Central Railway (DRM Raipur Division)
+ */
+export function loadSecrTimetable(baseDate: Date): TrainEntry[] {
+  let timetablePath = path.join(__dirname, "secrTimetable.json");
+  if (!fs.existsSync(timetablePath)) {
+    timetablePath = path.join(__dirname, "..", "secrTimetable.json");
+  }
+  if (!fs.existsSync(timetablePath)) return [];
+  const rawData = fs.readFileSync(timetablePath, "utf-8");
+  const trains: TrainEntry[] = JSON.parse(rawData);
+
+  for (const train of trains) {
+    for (const stop of train.stop_times) {
+      stop.arrivalDate = parseTimeToDate(stop.arrival, baseDate);
+      stop.departureDate = parseTimeToDate(stop.departure, baseDate);
+    }
+  }
+
+  console.log(`[TimetableLoader] Loaded ${trains.length} SECR trains from secrTimetable`);
+  return trains;
+}
+
+/**
  * Filters trains that are active within a given time window
  */
 export function getActiveTrains(

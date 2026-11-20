@@ -1,0 +1,1258 @@
+{
+  "DURG": {
+    "id": "1",
+    "name": "Durg Junction",
+    "lat": 21.1895,
+    "lng": 81.2828,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BPHB",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BPHB.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": []
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BPHB",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BPHB.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": []
+      }
+    }
+  },
+  "BPHB": {
+    "id": "2",
+    "name": "Bhilai Power House",
+    "lat": 21.2091,
+    "lng": 81.3653,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BIA",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BIA.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DURG",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "DURG.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BIA",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BIA.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DURG",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "DURG.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "BIA": {
+    "id": "3",
+    "name": "Bhilai",
+    "lat": 21.2144,
+    "lng": 81.4089,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "KMI",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "KMI.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BPHB",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "BPHB.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "KMI",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "KMI.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BPHB",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "BPHB.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "KMI": {
+    "id": "4",
+    "name": "Kumhari",
+    "lat": 21.2294,
+    "lng": 81.5147,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "SZB",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "SZB.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BIA",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "BIA.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "SZB",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "SZB.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BIA",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "BIA.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "SZB": {
+    "id": "5",
+    "name": "Sarona",
+    "lat": 21.2403,
+    "lng": 81.5724,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "SRWN",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "SRWN.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "KMI",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "KMI.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "SRWN",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "SRWN.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "KMI",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "KMI.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "SRWN": {
+    "id": "6",
+    "name": "Saraswati Nagar",
+    "lat": 21.2472,
+    "lng": 81.6033,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "R",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "R.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "SZB",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "SZB.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "R",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "R.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "SZB",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "SZB.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "R": {
+    "id": "7",
+    "name": "Raipur Junction (DRM HQ)",
+    "lat": 21.2588,
+    "lng": 81.6296,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "WRC",
+            "split": {
+              "up_slow_1": {
+                "next": [
+                  "WRC.up_slow_1"
+                ]
+              },
+              "up_slow_2": {
+                "next": [
+                  "WRC.up_slow_2"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "SRWN",
+            "split": {
+              "down_slow_1": {
+                "next": [
+                  "SRWN.down_slow_1"
+                ]
+              },
+              "down_slow_2": {
+                "next": [
+                  "SRWN.down_slow_2"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "WRC",
+            "split": {
+              "up_fast_1": {
+                "next": [
+                  "WRC.up_fast_1"
+                ]
+              },
+              "up_fast_2": {
+                "next": [
+                  "WRC.up_fast_2"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "SRWN",
+            "split": {
+              "down_fast_1": {
+                "next": [
+                  "SRWN.down_fast_1"
+                ]
+              },
+              "down_fast_2": {
+                "next": [
+                  "SRWN.down_fast_2"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "WRC": {
+    "id": "8",
+    "name": "WRS Colony",
+    "lat": 21.2721,
+    "lng": 81.642,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "URK",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "URK.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "R",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "R.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "URK",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "URK.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "R",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "R.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "URK": {
+    "id": "9",
+    "name": "Urkura",
+    "lat": 21.2947,
+    "lng": 81.6521,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "MDH",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "MDH.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "WRC",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "WRC.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "MDH",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "MDH.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "WRC",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "WRC.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "MDH": {
+    "id": "10",
+    "name": "Mandhar",
+    "lat": 21.3533,
+    "lng": 81.6782,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "SLH",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "SLH.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "URK",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "URK.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "SLH",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "SLH.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "URK",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "URK.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "SLH": {
+    "id": "11",
+    "name": "Silyari",
+    "lat": 21.439,
+    "lng": 81.6967,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BKTH",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BKTH.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "MDH",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "MDH.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BKTH",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BKTH.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "MDH",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "MDH.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "BKTH": {
+    "id": "12",
+    "name": "Baikunth",
+    "lat": 21.5031,
+    "lng": 81.7145,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "TLD",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "TLD.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "SLH",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "SLH.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "TLD",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "TLD.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "SLH",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "SLH.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "TLD": {
+    "id": "13",
+    "name": "Tilda Neora",
+    "lat": 21.5615,
+    "lng": 81.7481,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "HN",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "HN.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BKTH",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "BKTH.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "HN",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "HN.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BKTH",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "BKTH.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "HN": {
+    "id": "14",
+    "name": "Hathbandh",
+    "lat": 21.6508,
+    "lng": 81.7963,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BYT",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BYT.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "TLD",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "TLD.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BYT",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BYT.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "TLD",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "TLD.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "BYT": {
+    "id": "15",
+    "name": "Bhatapara",
+    "lat": 21.7381,
+    "lng": 81.8291,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "NPI",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "NPI.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "HN",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "HN.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "NPI",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "NPI.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "HN",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "HN.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "NPI": {
+    "id": "16",
+    "name": "Nipania",
+    "lat": 21.849,
+    "lng": 81.8972,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "DGS",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "DGS.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BYT",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "BYT.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "DGS",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "DGS.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BYT",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "BYT.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "DGS": {
+    "id": "17",
+    "name": "Dagori",
+    "lat": 21.9211,
+    "lng": 81.9723,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BYL",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BYL.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "NPI",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "NPI.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BYL",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BYL.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "NPI",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "NPI.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "BYL": {
+    "id": "18",
+    "name": "Belha",
+    "lat": 21.9682,
+    "lng": 82.0289,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "DPH",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "DPH.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DGS",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "DGS.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "DPH",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "DPH.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DGS",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "DGS.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "DPH": {
+    "id": "19",
+    "name": "Dadhapara",
+    "lat": 22.0322,
+    "lng": 82.0911,
+    "tracks": {
+      "up_slow": {
+        "segments": [
+          {
+            "to_station": "BSP",
+            "split": {
+              "up_slow": {
+                "next": [
+                  "BSP.up_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "BYL",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "BYL.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": [
+          {
+            "to_station": "BSP",
+            "split": {
+              "up_fast": {
+                "next": [
+                  "BSP.up_fast"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "BYL",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "BYL.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "BSP": {
+    "id": "20",
+    "name": "Bilaspur Junction",
+    "lat": 22.0805,
+    "lng": 82.1648,
+    "tracks": {
+      "up_slow": {
+        "segments": []
+      },
+      "down_slow": {
+        "segments": [
+          {
+            "to_station": "DPH",
+            "split": {
+              "down_slow": {
+                "next": [
+                  "DPH.down_slow"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "up_fast": {
+        "segments": []
+      },
+      "down_fast": {
+        "segments": [
+          {
+            "to_station": "DPH",
+            "split": {
+              "down_fast": {
+                "next": [
+                  "DPH.down_fast"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

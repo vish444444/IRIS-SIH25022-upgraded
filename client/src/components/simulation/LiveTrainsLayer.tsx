@@ -43,7 +43,7 @@ export const LiveTrainMarker: React.FC<LiveTrainMarkerProps> = memo(({
   const height = isFocused ? 14 : 11;
 
   const tooltipContent = useMemo(() => {
-    const lineLabel = train.line_id === "csmt-kalyan" ? "Central Main Line" : "Harbour Line";
+    const lineLabel = train.line_id === "secr-raipur" ? "SECR Raipur Division" : train.line_id === "csmt-kalyan" ? "Central Main Line" : "Harbour Line";
     const statusText = train.isMoving ? `Moving @ ${train.speed.toFixed(1)} km/h` : "Dwell / Stationary";
     return `🚆 ${train.train_id} (${TRAIN_TYPE_LABELS[train.type] || train.type.toUpperCase()})\n` +
       `📍 Towards: ${train.destination}\n` +

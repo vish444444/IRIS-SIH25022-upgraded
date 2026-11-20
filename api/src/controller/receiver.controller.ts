@@ -46,8 +46,8 @@ export class ReceiverController {
         return;
       }
 
-      if (!payload.line_id || !["csmt-kalyan", "csmt-panvel"].includes(payload.line_id)) {
-        res.status(400).json({ error: "line_id must be one of: csmt-kalyan, csmt-panvel" });
+      if (!payload.line_id || !["csmt-kalyan", "csmt-panvel", "secr-raipur"].includes(payload.line_id)) {
+        res.status(400).json({ error: "line_id must be one of: csmt-kalyan, csmt-panvel, secr-raipur" });
         return;
       }
 

@@ -149,11 +149,12 @@ export class SectorBlockageController {
    */
   getSectors = (req: Request, res: Response, next: NextFunction): void => {
     try {
-      // Read sectors data from JSON file
+      const isSecr = req.query.corridor === "secr-raipur" || req.query.line_id === "secr-raipur";
+      const filename = isSecr ? "sectorsSecrRaipur.json" : "sectors.json";
       const possiblePaths = [
-        path.join(__dirname, "../services/simulation/sectors.json"),
-        path.join(process.cwd(), "src/services/simulation/sectors.json"),
-        path.join(process.cwd(), "api/src/services/simulation/sectors.json"),
+        path.join(__dirname, "../services/simulation", filename),
+        path.join(process.cwd(), "src/services/simulation", filename),
+        path.join(process.cwd(), "api/src/services/simulation", filename),
       ];
 
       let sectorsPath = possiblePaths.find((p) => fs.existsSync(p));

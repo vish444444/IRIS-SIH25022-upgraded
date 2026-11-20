@@ -37,6 +37,8 @@ import axios from 'axios'
 // Import raw track data
 import rawTrackData from '../../../../api/src/services/simulation/sampleTrackData.json'
 import sectorsData from '../../../../api/src/services/simulation/sectors.json'
+import rawTrackSecrData from '../../../../api/src/services/simulation/sampleTrackSecrRaipurData.json'
+import sectorsSecrData from '../../../../api/src/services/simulation/sectorsSecrRaipur.json'
 
 // ── Corridor Layout Dimensions ──
 // These control the SVG coordinate space (not pixels on screen).
@@ -77,7 +79,7 @@ interface PrecomputedSector {
 }
 
 // Major key stations for quick navigation
-const QUICK_STATIONS = [
+const CR_QUICK_STATIONS = [
   'CSMT',
   'BYCULLA',
   'DADAR',
@@ -89,6 +91,19 @@ const QUICK_STATIONS = [
   'DIVA',
   'DOMBIVLI',
   'KALYAN',
+]
+
+const SECR_QUICK_STATIONS = [
+  'DURG',
+  'BPHB',
+  'BIA',
+  'KMI',
+  'R',
+  'WRC',
+  'URK',
+  'TLD',
+  'BYT',
+  'BSP',
 ]
 
 export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
@@ -178,17 +193,23 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     return () => ro.disconnect()
   }, [])
 
+  const isSecr = lineId === 'secr-raipur'
+  const kmToPixels = isSecr ? 110 : KM_TO_PIXELS
+  const rawTrack = isSecr ? rawTrackSecrData : rawTrackData
+  const activeSectorsRaw = (isSecr ? sectorsSecrData : sectorsData) as any[]
+  const quickStations = isSecr ? SECR_QUICK_STATIONS : CR_QUICK_STATIONS
+
   // 1. Corridor Configuration (Memoized)
   const corridorConfig = useMemo<CorridorConfig>(() => {
-    return parseCorridorData(rawTrackData)
-  }, [])
+    return parseCorridorData(rawTrack)
+  }, [rawTrack])
 
   // 2. Base Layout Coordinates
   const layout = useMemo(() => {
     const { stations, trackTypes } = corridorConfig
 
     const totalWidth =
-      Math.max(...stations.map((s) => s.kmFromStart)) * KM_TO_PIXELS + 400
+      Math.max(...stations.map((s) => s.kmFromStart)) * kmToPixels + 400
     const totalHeight =
       STATION_LABEL_HEIGHT +
       trackTypes.length * (TRACK_HEIGHT + TRACK_SPACING) +
@@ -198,7 +219,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     stations.forEach((station) => {
       stationPositions.set(
         station.name,
-        station.kmFromStart * KM_TO_PIXELS + 150
+        station.kmFromStart * kmToPixels + 150
       )
     })
 
@@ -239,11 +260,10 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
       totalWidth,
       totalHeight,
     }
-  }, [corridorConfig])
+  }, [corridorConfig, kmToPixels])
 
   // 3. Static Precomputed Sector Geometry (Evaluated ONCE, 0 recalculation on render)
   const { precomputedSectors, sectorsById } = useMemo(() => {
-    const rawSectors = sectorsData as any[]
     const converter = new GPSToMapConverter(
       {
         width: layout.totalWidth,
@@ -251,13 +271,14 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
         paddingX: 150,
         paddingY: 40,
       },
-      KM_TO_PIXELS
+      kmToPixels,
+      corridorConfig.stations
     )
 
     const list: PrecomputedSector[] = []
     const byId = new Map<string, PrecomputedSector>()
 
-    for (const sector of rawSectors) {
+    for (const sector of activeSectorsRaw) {
       const trackType = getNormalizedTrackType(sector.track_type)
       const baseTrackY = layout.trackYPositions.get(trackType) || 0
       const laneCount = sector.lane_count || 1
@@ -838,7 +859,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
           <Navigation className="w-3 h-3 text-cyan-400" />
           Stations:
         </span>
-        {QUICK_STATIONS.map((stationName) => {
+        {quickStations.map((stationName) => {
           const isActive = activeQuickStation === stationName
           return (
             <button
@@ -1121,13 +1142,14 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
             const topY = topTrack.y - 16
             const bottomY = bottomTrack.y + TRACK_HEIGHT + 16
             const isStationActive = activeQuickStation === station.name
+            const isRaipurJn = station.name === 'R'
+            const displayName = isRaipurJn ? 'RAIPUR JN ★ DRM HQ' : station.name.replace(/_/g, ' ')
+            const badgeWidth = isRaipurJn ? 156 : Math.max(90, displayName.length * 7 + 20)
+            const originStationName = isSecr ? 'DURG' : 'CSMT'
 
-            const displayName = station.name.replace(/_/g, ' ')
-            const badgeWidth = Math.max(90, displayName.length * 7 + 20)
-
-            const stationTooltip = `🚉 ${displayName} Junction\n📍 Distance: ${station.kmFromStart.toFixed(
-              1
-            )} km from CSMT\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}`
+            const stationTooltip = isRaipurJn
+              ? `⭐ RAIPUR JUNCTION (R)\n🏢 Division Headquarters: DRM Raipur (SECR)\n📍 Distance: ${station.kmFromStart.toFixed(1)} km from ${originStationName}\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}\n🚆 Central Section Controller Dispatch Cabin • 7 Platforms`
+              : `🚉 ${displayName}\n📍 Distance: ${station.kmFromStart.toFixed(1)} km from ${originStationName}\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}`
 
             return (
               <g
@@ -1144,9 +1166,9 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                   y1={STATION_LABEL_HEIGHT - 5}
                   x2={x}
                   y2={layout.totalHeight - 10}
-                  stroke={isStationActive ? '#06b6d4' : 'url(#station-line-grad)'}
-                  strokeWidth={isStationActive ? 2.5 : 1}
-                  opacity={isStationActive ? 0.9 : 0.5}
+                  stroke={isStationActive ? '#06b6d4' : isRaipurJn ? '#f59e0b' : 'url(#station-line-grad)'}
+                  strokeWidth={isStationActive || isRaipurJn ? 2.5 : 1}
+                  opacity={isStationActive || isRaipurJn ? 0.95 : 0.5}
                 />
 
                 {/* Station Overhead Badge */}
@@ -1157,16 +1179,34 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                     width={badgeWidth}
                     height={26}
                     rx={6}
-                    fill={isStationActive ? '#0e7490' : isDarkMode ? '#0f172a' : '#ffffff'}
-                    stroke={isStationActive ? '#22d3ee' : isDarkMode ? '#334155' : '#0284c7'}
-                    strokeWidth={isStationActive ? 2.5 : 1}
+                    fill={
+                      isStationActive
+                        ? '#0e7490'
+                        : isRaipurJn
+                        ? isDarkMode ? '#451a03' : '#fef3c7'
+                        : isDarkMode ? '#0f172a' : '#ffffff'
+                    }
+                    stroke={
+                      isStationActive
+                        ? '#22d3ee'
+                        : isRaipurJn
+                        ? '#f59e0b'
+                        : isDarkMode ? '#334155' : '#0284c7'
+                    }
+                    strokeWidth={isStationActive || isRaipurJn ? 2.5 : 1}
                     filter="drop-shadow(0 2px 6px rgba(0,0,0,0.4))"
                   />
                   <text
                     x={0}
                     y={-1}
-                    fill={isStationActive ? '#ffffff' : isDarkMode ? '#e2e8f0' : '#0f172a'}
-                    fontSize="10"
+                    fill={
+                      isStationActive
+                        ? '#ffffff'
+                        : isRaipurJn
+                        ? isDarkMode ? '#fde68a' : '#92400e'
+                        : isDarkMode ? '#e2e8f0' : '#0f172a'
+                    }
+                    fontSize={isRaipurJn ? '10.5' : '10'}
                     fontWeight="800"
                     textAnchor="middle"
                     letterSpacing="0.5"
@@ -1176,12 +1216,18 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                   <text
                     x={0}
                     y={9}
-                    fill={isStationActive ? '#a5f3fc' : isDarkMode ? '#94a3b8' : '#64748b'}
+                    fill={
+                      isStationActive
+                        ? '#a5f3fc'
+                        : isRaipurJn
+                        ? isDarkMode ? '#f59e0b' : '#b45309'
+                        : isDarkMode ? '#94a3b8' : '#64748b'
+                    }
                     fontSize="7.5"
                     fontWeight="bold"
                     textAnchor="middle"
                   >
-                    KM {station.kmFromStart.toFixed(1)}
+                    {isRaipurJn ? `DIVISION HQ • KM ${station.kmFromStart.toFixed(1)}` : `KM ${station.kmFromStart.toFixed(1)}`}
                   </text>
                 </g>
 

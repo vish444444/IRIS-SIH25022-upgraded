@@ -1,5 +1,5 @@
-import { loadTimetable, TrainEntry } from "./timetableLoader";
-import { loadStations, buildTrackGraph, TrackGraph } from "./trackBuilder";
+import { loadTimetable, loadSecrTimetable, TrainEntry } from "./timetableLoader";
+import { loadStations, loadSecrStations, buildTrackGraph, TrackGraph } from "./trackBuilder";
 import { simulateAllTrains, TrainState } from "./trainSimulator";
 import { sendAllTrainData, checkApiHealth, getBlockedSectorIds } from "./networkClient";
 
@@ -9,8 +9,11 @@ const API_URL = process.env.API_URL || "http://localhost:3000/api/receiver";
 
 // Simulation state
 let trains: TrainEntry[] = [];
+let secrTrains: TrainEntry[] = [];
 let trackGraph: TrackGraph;
+let secrTrackGraph: TrackGraph;
 let trainStates: Map<string, TrainState> = new Map();
+let secrTrainStates: Map<string, TrainState> = new Map();
 let simulationTimer: NodeJS.Timeout | null = null;
 let isRunning = false;
 let tickCount = 0;
@@ -50,13 +53,28 @@ async function initialize(): Promise<void> {
   console.log(`[Init] Speed multiplier: ${simulationSpeedMultiplier}x`);
 
   // Load stations and build track graph
-  console.log("[Init] Loading stations...");
+  console.log("[Init] Loading Central Railway stations...");
   const stationsData = loadStations();
   trackGraph = buildTrackGraph(stationsData);
 
-  // Load timetable
-  console.log("[Init] Loading timetable...");
+  console.log("[Init] Loading SECR Raipur Division stations...");
+  try {
+    const secrStationsData = loadSecrStations();
+    secrTrackGraph = buildTrackGraph(secrStationsData);
+  } catch (err) {
+    console.warn("[Init] SECR stations not loaded:", err);
+  }
+
+  // Load timetables
+  console.log("[Init] Loading Central Railway timetable...");
   trains = loadTimetable(simulationBaseDate);
+
+  console.log("[Init] Loading SECR Raipur Division timetable...");
+  try {
+    secrTrains = loadSecrTimetable(simulationBaseDate);
+  } catch (err) {
+    console.warn("[Init] SECR timetable not loaded:", err);
+  }
 
   // Check API health
   console.log("[Init] Checking API health...");
@@ -116,7 +134,7 @@ async function tick(): Promise<void> {
   const currentTime = getSimulationTime();
   blockedSectorIds = await getBlockedSectorIds();
 
-  // Simulate all trains
+  // Simulate all trains (Central Railway)
   const newStates = simulateAllTrains(
     trains,
     currentTime,
@@ -125,6 +143,22 @@ async function tick(): Promise<void> {
     SIMULATION_INTERVAL_MS / 1000,
     blockedSectorIds
   );
+
+  // Simulate all trains (SECR Raipur Division)
+  if (secrTrackGraph && secrTrains.length > 0) {
+    const newSecrStates = simulateAllTrains(
+      secrTrains,
+      currentTime,
+      secrTrackGraph,
+      secrTrainStates,
+      SIMULATION_INTERVAL_MS / 1000,
+      blockedSectorIds
+    );
+    secrTrainStates = newSecrStates;
+    for (const [id, state] of newSecrStates.entries()) {
+      newStates.set(id, state);
+    }
+  }
 
   trainStates = newStates;
 

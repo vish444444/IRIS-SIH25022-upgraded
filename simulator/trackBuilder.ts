@@ -114,6 +114,18 @@ export function loadStations(): StationsData {
 }
 
 /**
+ * Loads secrStations.json for South East Central Railway (Raipur Division)
+ */
+export function loadSecrStations(): StationsData {
+  let stationsPath = path.join(__dirname, "secrStations.json");
+  if (!fs.existsSync(stationsPath)) {
+    stationsPath = path.join(__dirname, "..", "secrStations.json");
+  }
+  const rawData = fs.readFileSync(stationsPath, "utf-8");
+  return JSON.parse(rawData);
+}
+
+/**
  * Builds a track graph from stations data
  * Creates segments between consecutive stations with distances
  */

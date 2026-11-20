@@ -5,7 +5,7 @@
 export type LiveTrainType = "slow" | "fast" | "womens" | "ac";
 
 // Supported railway line identifiers
-export type LineId = "csmt-kalyan" | "csmt-panvel";
+export type LineId = "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
 
 export interface LiveTrainData {
   train_id: string;

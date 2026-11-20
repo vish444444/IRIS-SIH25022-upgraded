@@ -97,6 +97,47 @@ const SCENARIOS: Scenario[] = [
       { train_id: 'T404', resource_id: 'THANE-JN', priority: 5, requested_entry_sec: 60, transit_seconds: 90 },
     ],
   },
+  {
+    id: 'secr_raipur_vande_bharat',
+    label: 'SECR: VB vs Freight (Raipur Jn)',
+    icon: <TrainFront className="w-4 h-4 text-amber-500" />,
+    conflictTrains: [
+      {
+        train_id: 'SECR_VB_20825', resource_id: 'RAIPUR-JN', priority: 1, requested_entry_sec: 45, transit_seconds: 90,
+        prediction: {
+          current_delay_min: 8,
+          train_type: 'fast',
+          current_speed_kmh: 75,
+          previous_speed_kmh: 110,
+          section_occupancy: 0.7,
+          trains_ahead: 1,
+          disruption_active: true,
+        },
+      },
+      { train_id: 'SECR_COAL_501', resource_id: 'RAIPUR-JN', priority: 4, requested_entry_sec: 60, transit_seconds: 120 },
+    ],
+    whatIfTrains: [
+      { train_id: 'SECR_VB_20825', resource_id: 'RAIPUR-JN', priority: 1, requested_entry_sec: 45, transit_seconds: 90 },
+      { train_id: 'SECR_COAL_501', resource_id: 'RAIPUR-JN', priority: 4, requested_entry_sec: 60, transit_seconds: 120 },
+    ],
+  },
+  {
+    id: 'secr_bhilai_congestion',
+    label: 'SECR: Bhilai Steel Congestion (4 trains)',
+    icon: <AlertTriangle className="w-4 h-4 text-amber-500" />,
+    conflictTrains: [
+      { train_id: 'SECR_VB_20825', resource_id: 'BPHB-JN', priority: 1, requested_entry_sec: 0, transit_seconds: 90, max_hold_seconds: 1200 },
+      { train_id: 'SECR_INT_12855', resource_id: 'BPHB-JN', priority: 2, requested_entry_sec: 30, transit_seconds: 90, max_hold_seconds: 1200 },
+      { train_id: 'SECR_MEMU_08701', resource_id: 'BPHB-JN', priority: 3, requested_entry_sec: 50, transit_seconds: 90, max_hold_seconds: 1200 },
+      { train_id: 'SECR_STEEL_BFNS', resource_id: 'BPHB-JN', priority: 5, requested_entry_sec: 75, transit_seconds: 120, max_hold_seconds: 1200 },
+    ],
+    whatIfTrains: [
+      { train_id: 'SECR_VB_20825', resource_id: 'BPHB-JN', priority: 1, requested_entry_sec: 0, transit_seconds: 90 },
+      { train_id: 'SECR_INT_12855', resource_id: 'BPHB-JN', priority: 2, requested_entry_sec: 30, transit_seconds: 90 },
+      { train_id: 'SECR_MEMU_08701', resource_id: 'BPHB-JN', priority: 3, requested_entry_sec: 50, transit_seconds: 90 },
+      { train_id: 'SECR_STEEL_BFNS', resource_id: 'BPHB-JN', priority: 5, requested_entry_sec: 75, transit_seconds: 120 },
+    ],
+  },
 ]
 
 export const DemoMode: React.FC = () => {
@@ -124,28 +165,31 @@ export const DemoMode: React.FC = () => {
     }
   }
 
-  const runUnsafeOverrideDemo = async () => {
+  const runUnsafeOverrideDemo = async (targetStation: 'Dadar' | 'Raipur' = 'Dadar') => {
     setActiveScenario(null)
+    const isRaipur = targetStation === 'Raipur'
     const result = await requestOverride({
       plans: [
         {
-          train_id: 'T099',
-          section_id: 'S18',
+          train_id: isRaipur ? 'SECR_VB_20825' : 'T099',
+          section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
           enters_at_sec: 0,
           exits_at_sec: 200,
           planned_speed_kmh: 60,
           direction: 'up',
         },
         {
-          train_id: 'T205',
-          section_id: 'S18',
+          train_id: isRaipur ? 'SECR_COAL_501' : 'T205',
+          section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
           enters_at_sec: 20,
           exits_at_sec: 220,
           planned_speed_kmh: 60,
           direction: 'up',
         },
       ],
-      reason: 'Demo: controller manually forces T205 into an occupied sector',
+      reason: isRaipur
+        ? 'Demo: controller attempts to force Coal Rake into occupied Platform 1 of Raipur Junction'
+        : 'Demo: controller manually forces T205 into an occupied sector',
     })
     setUnsafeDemo({ allowed: result.override_allowed, reasons: result.reasons })
   }
@@ -173,12 +217,20 @@ export const DemoMode: React.FC = () => {
         ))}
       </div>
 
-      <button
-        onClick={runUnsafeOverrideDemo}
-        className="w-full text-[11px] flex items-center justify-center gap-1.5 rounded px-2 py-1.5 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40"
-      >
-        <Ban className="w-3.5 h-3.5" /> Demo: Attempt Unsafe Manual Override
-      </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <button
+          onClick={() => runUnsafeOverrideDemo('Raipur')}
+          className="text-[11px] flex items-center justify-center gap-1.5 rounded px-2 py-1.5 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+        >
+          <Ban className="w-3.5 h-3.5 text-amber-600" /> Unsafe Override: Raipur Jn (P1)
+        </button>
+        <button
+          onClick={() => runUnsafeOverrideDemo('Dadar')}
+          className="text-[11px] flex items-center justify-center gap-1.5 rounded px-2 py-1.5 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40"
+        >
+          <Ban className="w-3.5 h-3.5" /> Unsafe Override: Dadar (S18)
+        </button>
+      </div>
 
       {unsafeDemo && (
         <div className="text-[11px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded p-2 text-red-700 dark:text-red-400">

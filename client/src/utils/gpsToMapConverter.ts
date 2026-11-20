@@ -127,9 +127,16 @@ export class GPSToMapConverter {
   private paddingX: number;
   private kmToPixels: number;
 
-  constructor(dimensions: MapDimensions, kmToPixels: number = 150) {
-    this.bounds = getGPSBounds();
-    this.stations = parseStations();
+  constructor(dimensions: MapDimensions, kmToPixels: number = 150, customStations?: Station[]) {
+    this.stations = customStations || parseStations();
+    const lats = this.stations.map(s => s.lat);
+    const lngs = this.stations.map(s => s.lng);
+    this.bounds = {
+      minLat: lats.length > 0 ? Math.min(...lats) : 0,
+      maxLat: lats.length > 0 ? Math.max(...lats) : 0,
+      minLng: lngs.length > 0 ? Math.min(...lngs) : 0,
+      maxLng: lngs.length > 0 ? Math.max(...lngs) : 0,
+    };
     this.mapWidth = dimensions.width;
     this.paddingX = dimensions.paddingX;
     this.kmToPixels = kmToPixels;
