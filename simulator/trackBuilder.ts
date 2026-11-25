@@ -21,24 +21,27 @@ export interface TrackSegment {
 }
 
 export interface TrackSplit {
-  variant: string; // e.g., "up_slow_1", "up_slow_2"
-  next: string; // next station for this variant
+  variant: string;
+  next: string;
 }
 
 export interface TrackLaneInfo {
   fromStation: string;
   toStation: string;
-  trackType: string; // e.g., "up_slow", "down_fast"
+  trackType: string;
   splits: TrackSplit[];
-  laneCount: number; // 1 if no split, 2+ if split
+  laneCount: number;
 }
 
 export interface TrackGraph {
+  lineId: string;
   segments: TrackSegment[];
+  orderedStations: StationCoord[];
   stationMap: Map<string, StationCoord>;
   totalDistance: number;
-  laneMap?: Map<string, TrackLaneInfo>; // Key: "STATION1__STATION2__type"
-  sectorMap?: Map<string, SectorPathInfo>; // Key: "FROM__TO__variant"
+  laneMap?: Map<string, TrackLaneInfo>;
+  sectorMap?: Map<string, SectorPathInfo>;
+  multiHopCache?: Map<string, SectorPathInfo | null>;
 }
 
 export interface SectorSegment {
@@ -69,18 +72,13 @@ export interface SectorPathInfo {
   segments: SectorSegment[];
 }
 
-/**
- * Haversine formula to calculate distance between two lat/lng points
- * Returns distance in kilometers
- */
 export function haversineDistance(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number
 ): number {
-  const R = 6371; // Earth's radius in kilometers
-
+  const R = 6371;
   const dLat = toRadians(lat2 - lat1);
   const dLng = toRadians(lng2 - lng1);
 
@@ -92,7 +90,6 @@ export function haversineDistance(
       Math.sin(dLng / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
   return R * c;
 }
 
@@ -100,11 +97,7 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
-/**
- * Loads stations.json and builds the track graph
- */
 export function loadStations(): StationsData {
-  // Handle both development (ts-node) and production (compiled) paths
   let stationsPath = path.join(__dirname, "stations.json");
   if (!fs.existsSync(stationsPath)) {
     stationsPath = path.join(__dirname, "..", "stations.json");
@@ -113,9 +106,6 @@ export function loadStations(): StationsData {
   return JSON.parse(rawData);
 }
 
-/**
- * Loads secrStations.json for South East Central Railway (Raipur Division)
- */
 export function loadSecrStations(): StationsData {
   let stationsPath = path.join(__dirname, "secrStations.json");
   if (!fs.existsSync(stationsPath)) {
@@ -125,21 +115,16 @@ export function loadSecrStations(): StationsData {
   return JSON.parse(rawData);
 }
 
-/**
- * Builds a track graph from stations data
- * Creates segments between consecutive stations with distances
- */
 export function buildTrackGraph(stationsData: StationsData): TrackGraph {
-  const stations = stationsData.stations.sort((a, b) => a.order - b.order);
+  const lineId = stationsData.line_id || "csmt-kalyan";
+  const stations = [...stationsData.stations].sort((a, b) => a.order - b.order);
   const segments: TrackSegment[] = [];
   const stationMap = new Map<string, StationCoord>();
 
-  // Build station lookup map
   for (const station of stations) {
     stationMap.set(station.code, station);
   }
 
-  // Build segments between consecutive stations
   let totalDistance = 0;
   for (let i = 0; i < stations.length - 1; i++) {
     const from = stations[i];
@@ -150,25 +135,27 @@ export function buildTrackGraph(stationsData: StationsData): TrackGraph {
     totalDistance += distance;
   }
 
-  // Load track data to build lane map
-  const trackData = loadTrackData();
+  // Load corridor-specific track and sector geometry (CR vs SECR Raipur)
+  const trackData = loadTrackData(lineId);
   const laneMap = buildLaneMap(trackData);
 
-  // Load sectors metadata for per-lane geometry
-  const sectorsData = loadSectorsData();
+  const sectorsData = loadSectorsData(lineId);
   const sectorMap = buildSectorMap(sectorsData);
 
-  console.log(`[TrackBuilder] Built track with ${segments.length} segments`);
-  console.log(`[TrackBuilder] Total track distance: ${totalDistance.toFixed(2)} km`);
-  console.log(`[TrackBuilder] Built lane map with ${laneMap.size} split points`);
-  console.log(`[TrackBuilder] Built sector map with ${sectorMap.size} lane paths`);
+  console.log(`[TrackBuilder][${lineId}] Built ${segments.length} segments (${totalDistance.toFixed(2)} km), ${laneMap.size} lanes, ${sectorMap.size} sector chains`);
 
-  return { segments, stationMap, totalDistance, laneMap, sectorMap };
+  return {
+    lineId,
+    segments,
+    orderedStations: stations,
+    stationMap,
+    totalDistance,
+    laneMap,
+    sectorMap,
+    multiHopCache: new Map(),
+  };
 }
 
-/**
- * Gets the segment between two stations
- */
 export function getSegment(
   trackGraph: TrackGraph,
   fromStation: string,
@@ -186,9 +173,6 @@ export function getSegment(
   };
 }
 
-/**
- * Interpolates coordinates between two points based on progress (0-1)
- */
 export function interpolateCoordinates(
   from: StationCoord,
   to: StationCoord,
@@ -202,46 +186,42 @@ export function interpolateCoordinates(
   };
 }
 
-/**
- * Loads and parses track data to extract split/lane information
- */
-export function loadTrackData(): Record<string, any> {
-  let trackPath = path.join(__dirname, "../api/src/services/simulation/sampleTrackData.json");
-  if (!fs.existsSync(trackPath)) {
-    // Fallback paths
-    trackPath = path.join(__dirname, "../../api/src/services/simulation/sampleTrackData.json");
+function resolveSimulationDataFile(filename: string): string | null {
+  const candidates = [
+    path.join(__dirname, "../api/src/services/simulation", filename),
+    path.join(__dirname, "../../api/src/services/simulation", filename),
+    path.resolve(process.cwd(), "api/src/services/simulation", filename),
+    path.resolve(process.cwd(), "../api/src/services/simulation", filename),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
   }
-  if (!fs.existsSync(trackPath)) {
-    console.warn("[TrackBuilder] Could not find sampleTrackData.json, skipping lane metadata");
+  return null;
+}
+
+export function loadTrackData(lineId: string = "csmt-kalyan"): Record<string, any> {
+  const filename = lineId === "secr-raipur" ? "sampleTrackSecrRaipurData.json" : "sampleTrackData.json";
+  const trackPath = resolveSimulationDataFile(filename);
+  if (!trackPath) {
+    console.warn(`[TrackBuilder] Could not find ${filename}, skipping lane metadata`);
     return {};
   }
-  const rawData = fs.readFileSync(trackPath, "utf-8");
-  return JSON.parse(rawData);
+  return JSON.parse(fs.readFileSync(trackPath, "utf-8"));
 }
 
-/**
- * Loads sectors.json which contains split-aware per-lane geometry
- */
-export function loadSectorsData(): Record<string, any>[] {
-  let sectorsPath = path.join(__dirname, "../api/src/services/simulation/sectors.json");
-  if (!fs.existsSync(sectorsPath)) {
-    sectorsPath = path.join(__dirname, "../../api/src/services/simulation/sectors.json");
-  }
-  if (!fs.existsSync(sectorsPath)) {
-    console.warn("[TrackBuilder] Could not find sectors.json, lane geometry will use station interpolation");
+export function loadSectorsData(lineId: string = "csmt-kalyan"): Record<string, any>[] {
+  const filename = lineId === "secr-raipur" ? "sectorsSecrRaipur.json" : "sectors.json";
+  const sectorsPath = resolveSimulationDataFile(filename);
+  if (!sectorsPath) {
+    console.warn(`[TrackBuilder] Could not find ${filename}, using station interpolation`);
     return [];
   }
-  const rawData = fs.readFileSync(sectorsPath, "utf-8");
-  return JSON.parse(rawData);
+  return JSON.parse(fs.readFileSync(sectorsPath, "utf-8"));
 }
 
-/**
- * Builds lane info map from track data
- */
 export function buildLaneMap(trackData: Record<string, any>): Map<string, TrackLaneInfo> {
   const laneMap = new Map<string, TrackLaneInfo>();
 
-  // Iterate through stations and their tracks
   for (const stationName in trackData) {
     const stationData = trackData[stationName];
     const tracks = stationData?.tracks || {};
@@ -259,7 +239,7 @@ export function buildLaneMap(trackData: Record<string, any>): Map<string, TrackL
         const laneCount = Math.max(1, splitVariants.length);
 
         const mapKey = `${stationName}__${toStation}__${trackType}`;
-        const splits: TrackSplit[] = splitVariants.map((variant, index) => ({
+        const splits: TrackSplit[] = splitVariants.map((variant) => ({
           variant,
           next: split[variant]?.next?.[0] || `${toStation}.${trackType}`,
         }));
@@ -278,14 +258,10 @@ export function buildLaneMap(trackData: Record<string, any>): Map<string, TrackL
   return laneMap;
 }
 
-/**
- * Builds a sector path map keyed by station pair and variant
- */
 export function buildSectorMap(sectorsData: Record<string, any>[]): Map<string, SectorPathInfo> {
   const sectorMap = new Map<string, SectorPathInfo>();
   if (!sectorsData || sectorsData.length === 0) return sectorMap;
 
-  // Group sectors by from/to/variant
   const buckets = new Map<string, Record<string, any>[]>();
   for (const sector of sectorsData) {
     const variant = sector.split_variant || sector.track_type;
@@ -295,7 +271,6 @@ export function buildSectorMap(sectorsData: Record<string, any>[]): Map<string, 
   }
 
   for (const [key, bucket] of buckets.entries()) {
-    // Sort by index to preserve geometric order
     bucket.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
 
     let cumulative = 0;
@@ -351,20 +326,115 @@ export function buildSectorMap(sectorsData: Record<string, any>[]): Map<string, 
 }
 
 /**
- * Allocates a train to a lane based on train ID and track
- * Uses hash-based allocation for deterministic distribution
+ * Resolves single-hop OR multi-hop composite sector chains between two stations
+ * so fast/express trains skipping intermediate stops still track exact sectors.
  */
+export function resolveCompositeSectorPath(
+  trackGraph: TrackGraph,
+  fromStation: string,
+  toStation: string,
+  trackVariant?: string,
+  trackType?: string
+): SectorPathInfo | undefined {
+  const sectorMap = trackGraph.sectorMap;
+  if (!sectorMap || fromStation === toStation) return undefined;
+
+  const cacheKey = `${fromStation}__${toStation}__${trackVariant || trackType || ""}`;
+  if (trackGraph.multiHopCache?.has(cacheKey)) {
+    return trackGraph.multiHopCache.get(cacheKey) || undefined;
+  }
+
+  const pickHop = (a: string, b: string): SectorPathInfo | undefined => {
+    const candidates = [
+      trackVariant ? `${a}__${b}__${trackVariant}` : "",
+      trackType ? `${a}__${b}__${trackType}` : "",
+      trackType ? `${a}__${b}__${trackType}_1` : "",
+      trackType ? `${a}__${b}__${trackType}_2` : "",
+    ].filter(Boolean);
+
+    for (const k of candidates) {
+      const hit = sectorMap.get(k);
+      if (hit) return hit;
+    }
+
+    for (const val of sectorMap.values()) {
+      if (val.fromStation === a && val.toStation === b && (!trackType || val.trackType.startsWith(trackType))) {
+        return val;
+      }
+    }
+    return undefined;
+  };
+
+  // Direct adjacent hop check
+  const direct = pickHop(fromStation, toStation);
+  if (direct) {
+    trackGraph.multiHopCache?.set(cacheKey, direct);
+    return direct;
+  }
+
+  // Multi-hop stitch across intermediate corridor stations
+  const stations = trackGraph.orderedStations;
+  const fromIdx = stations.findIndex((s) => s.code === fromStation);
+  const toIdx = stations.findIndex((s) => s.code === toStation);
+  if (fromIdx === -1 || toIdx === -1) {
+    trackGraph.multiHopCache?.set(cacheKey, null);
+    return undefined;
+  }
+
+  const step = toIdx > fromIdx ? 1 : -1;
+  const stitchedSegments: SectorSegment[] = [];
+  let cumulative = 0;
+
+  for (let i = fromIdx; i !== toIdx; i += step) {
+    const a = stations[i].code;
+    const b = stations[i + step].code;
+    const hop = pickHop(a, b);
+    if (!hop) continue;
+
+    for (const seg of hop.segments) {
+      const start = cumulative;
+      const end = cumulative + seg.lengthMeters;
+      cumulative = end;
+      stitchedSegments.push({
+        ...seg,
+        cumulativeStart: start,
+        cumulativeEnd: end,
+      });
+    }
+  }
+
+  if (stitchedSegments.length === 0) {
+    trackGraph.multiHopCache?.set(cacheKey, null);
+    return undefined;
+  }
+
+  const first = stitchedSegments[0];
+  const composite: SectorPathInfo = {
+    key: cacheKey,
+    trackType: trackType || first.trackType,
+    splitVariant: trackVariant || first.splitVariant,
+    fromStation,
+    toStation,
+    laneIndex: first.laneIndex,
+    laneCount: stitchedSegments.reduce((max, s) => Math.max(max, s.laneCount), first.laneCount),
+    totalLengthMeters: cumulative,
+    segments: stitchedSegments,
+  };
+
+  trackGraph.multiHopCache?.set(cacheKey, composite);
+  return composite;
+}
+
 export function allocateTrainLane(
   trainId: string,
   trackType: string,
   laneCount: number,
   variants?: string[]
 ): { laneIndex: number; variant: string } {
-  // Simple hash-based allocation: use train ID to pick a lane consistently
   let hash = 0;
   for (let i = 0; i < trainId.length; i++) {
     hash = (hash << 5) - hash + trainId.charCodeAt(i);
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = hash & hash;
   }
   const laneIndex = Math.abs(hash) % laneCount;
   const variantList = variants && variants.length === laneCount ? variants : undefined;
@@ -376,11 +446,14 @@ export function allocateTrainLane(
 
 export default {
   loadStations,
+  loadSecrStations,
   buildTrackGraph,
   haversineDistance,
   getSegment,
   interpolateCoordinates,
   loadTrackData,
+  loadSectorsData,
   buildLaneMap,
+  resolveCompositeSectorPath,
   allocateTrainLane,
 };

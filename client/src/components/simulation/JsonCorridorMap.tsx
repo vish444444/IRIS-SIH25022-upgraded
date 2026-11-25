@@ -12,6 +12,8 @@ import {
   Radio,
   CheckCircle2,
   Maximize2,
+  Activity,
+  Crosshair,
 } from 'lucide-react'
 import {
   parseCorridorData,
@@ -19,6 +21,7 @@ import {
   type CorridorConfig,
 } from '../../utils/corridorMapParser'
 import { LiveTrainsLayer } from './LiveTrainsLayer'
+import { StringlineChart } from './StringlineChart'
 import {
   LineId,
   LiveTrainData,
@@ -124,15 +127,18 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     return false
   }, [theme])
 
-  // Live train polling
+  // Live train polling (1000ms high-frequency telemetry)
   const {
     trains: liveTrains,
     totalTrains: liveTrainCount,
     countByType,
   } = useLiveTrains({
-    pollInterval: 2000,
+    pollInterval: 1000,
     enabled: true,
   })
+
+  const [followTrainLock, setFollowTrainLock] = useState(false)
+  const [showStringline, setShowStringline] = useState(false)
 
   // Tooltip state
   const [tooltip, setTooltip] = useState<{
@@ -198,6 +204,19 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   const rawTrack = isSecr ? rawTrackSecrData : rawTrackData
   const activeSectorsRaw = (isSecr ? sectorsSecrData : sectorsData) as any[]
   const quickStations = isSecr ? SECR_QUICK_STATIONS : CR_QUICK_STATIONS
+
+  const corridorTrains = useMemo(
+    () => liveTrains.filter((t) => t.line_id === lineId),
+    [liveTrains, lineId]
+  )
+
+  const corridorCountByType = useMemo(() => {
+    const counts: Record<string, number> = { slow: 0, fast: 0, womens: 0, ac: 0 }
+    corridorTrains.forEach((t) => {
+      counts[t.type] = (counts[t.type] || 0) + 1
+    })
+    return counts
+  }, [corridorTrains])
 
   // 1. Corridor Configuration (Memoized)
   const corridorConfig = useMemo<CorridorConfig>(() => {
@@ -339,9 +358,14 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   )
 
   const getTrainDirection = useCallback((train: any): 'up' | 'down' => {
+    if (train.trackType) {
+      const lower = train.trackType.toLowerCase()
+      if (lower.startsWith('up')) return 'up'
+      if (lower.startsWith('down')) return 'down'
+    }
     const dest = train.destination?.toUpperCase() || ''
-    const upTerms = ['KALYAN', 'KASARA', 'KHOPOLI', 'TITWALA', 'ASANGAON', 'AMBERNATH']
-    const downTerms = ['CSMT', 'CHURCHGATE', 'CST', 'VT']
+    const upTerms = ['KALYAN', 'KASARA', 'KHOPOLI', 'TITWALA', 'ASANGAON', 'AMBERNATH', 'BSP', 'BILASPUR', 'BYT', 'TLD']
+    const downTerms = ['CSMT', 'CHURCHGATE', 'CST', 'VT', 'DURG', 'BPHB', 'BIA', 'SRWN']
 
     if (upTerms.some((d) => dest.includes(d))) return 'up'
     if (downTerms.some((d) => dest.includes(d))) return 'down'
@@ -350,14 +374,16 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
 
   const getTrainTrackKey = useCallback(
     (train: any): 'up_slow' | 'down_slow' | 'up_fast' | 'down_fast' | null => {
+      const normalized = train.trackType ? normalizeSectorTrackType(train.trackType) : null
+      if (normalized) return normalized
       const dir = getTrainDirection(train)
       const speed = train.type === 'fast' || train.type === 'ac' ? 'fast' : 'slow'
       return `${dir}_${speed}` as const
     },
-    [getTrainDirection]
+    [getTrainDirection, normalizeSectorTrackType]
   )
 
-  // 4. Signal Computation (Optimized lookup)
+  // 4. Signal Computation (Optimized corridor-filtered lookup)
   const SIGNAL_COLORS = {
     RED: '#ef4444',
     YELLOW: '#eab308',
@@ -373,28 +399,27 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
 
     const occupiedSectorIds = new Set<string>()
 
-    // Match live trains to sectors
-    liveTrains.forEach((train) => {
+    corridorTrains.forEach((train) => {
       const trainTrackKey = getTrainTrackKey(train)
       if (!trainTrackKey) return
 
-      // Explicit sectorId matching
+      // Exact sectorId match (authoritative from physics loop)
       if (train.sectorId) {
         const sector = sectorsById.get(train.sectorId)
         if (sector) {
-          const sectorTrackKey = normalizeSectorTrackType(sector.track_type)
-          if (sectorTrackKey === trainTrackKey) {
-            occupiedSectorIds.add(sector.sector_id)
-          }
+          occupiedSectorIds.add(sector.sector_id)
+          return
         }
       }
 
-      // GPS proximity matching
+      // Fallback GPS 2D bounding match on matching track key
       precomputedSectors.forEach((sector) => {
         const sectorTrackKey = normalizeSectorTrackType(sector.track_type)
         if (sectorTrackKey !== trainTrackKey) return
-        if (train.lat >= Math.min(sector.startLat, sector.endLat) - 0.001 &&
-            train.lat <= Math.max(sector.startLat, sector.endLat) + 0.001) {
+        if (
+          train.lat >= Math.min(sector.startLat, sector.endLat) - 0.002 &&
+          train.lat <= Math.max(sector.startLat, sector.endLat) + 0.002
+        ) {
           occupiedSectorIds.add(sector.sector_id)
         }
       })
@@ -408,7 +433,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
       })
     })
 
-    // Propagate caution signals (1-block ahead = yellow, 2-blocks = double-yellow)
+    // Propagate caution signals (1-block behind occupied = yellow, 2-blocks behind = double-yellow)
     occupiedSectorIds.forEach((occId) => {
       const occupiedSector = sectorsById.get(occId)
       if (!occupiedSector) return
@@ -439,7 +464,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     })
 
     return signals
-  }, [liveTrains, precomputedSectors, sectorsById, getTrainTrackKey, normalizeSectorTrackType])
+  }, [corridorTrains, precomputedSectors, sectorsById, getTrainTrackKey, normalizeSectorTrackType])
 
   // 5. Blocked & Closures Fetching
   useEffect(() => {
@@ -526,7 +551,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   const computeTrainY = useCallback(
     (train: LiveTrainData, defaultY: number) => {
       try {
-        const order = getTrackIndexForType(train.type, train.destination, train.lat)
+        const order = getTrackIndexForType(train.type, train.destination, train.lat, train.trackType)
         const trackType = layout.trackTypes.find((t) => t.order === order)
         if (!trackType) return defaultY
         const topY = layout.trackYPositions.get(trackType.id)
@@ -586,20 +611,18 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     setIsFocusedOnTrain(false)
   }, [computeFullViewBox])
 
-  // Station quick-jump: pan the viewBox to center on the station
+  // Reset drag overrides follow lock cleanly
   const panToStation = useCallback(
     (stationName: string) => {
       const stationX = layout.stationPositions.get(stationName)
       if (typeof stationX !== 'number') return
       setActiveQuickStation(stationName)
       setIsFocusedOnTrain(false)
-      setViewBox((prev) => {
-        // Keep current zoom level (w/h), just center X on the station
-        return {
-          ...prev,
-          x: stationX - prev.w / 2,
-        }
-      })
+      setFollowTrainLock(false)
+      setViewBox((prev) => ({
+        ...prev,
+        x: stationX - prev.w / 2,
+      }))
     },
     [layout.stationPositions]
   )
@@ -666,10 +689,11 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0 && !(e.target as HTMLElement).closest('button')) {
       setIsDragging(true)
+      setFollowTrainLock(false)
       dragStartRef.current = {
         x: e.clientX,
         y: e.clientY,
-        vbX: 0, // will be set in move
+        vbX: 0,
         vbY: 0,
       }
     }
@@ -748,12 +772,27 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     []
   )
 
-  // Focus on train: zoom the viewBox to the train's location
+  // Focus on train: zoom & optionally track the train when followTrainLock is active
+  const lastFocusedRef = useRef<string | null>(null)
   useEffect(() => {
     if (!focusedTrainId || !containerRef.current) return
+    const isNewFocus = lastFocusedRef.current !== focusedTrainId
+    if (!isNewFocus && !followTrainLock) return
+    if (isNewFocus) {
+      lastFocusedRef.current = focusedTrainId
+      setFollowTrainLock(true)
+    }
 
-    const liveTrain = liveTrains.find((t) => t.train_id === focusedTrainId)
-    if (!liveTrain) return
+    const liveTrain = corridorTrains.find((t) => t.train_id === focusedTrainId) ||
+                      liveTrains.find((t) => t.train_id === focusedTrainId)
+    if (!liveTrain || liveTrain.line_id !== lineId) return
+
+    const gpsStations = corridorConfig.stations.map((s) => ({
+      id: s.id,
+      name: s.name,
+      lat: s.lat,
+      lng: s.lng,
+    }))
 
     const converter = new GPSToMapConverter(
       {
@@ -762,25 +801,50 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
         paddingX: 150,
         paddingY: 40,
       },
-      KM_TO_PIXELS
+      kmToPixels,
+      gpsStations
     )
 
     const pos = converter.convert(liveTrain.lat, liveTrain.lng, 0)
     const trainY = computeTrainY(liveTrain, pos.y)
 
-    // Show ~15% of the corridor width centered on the train
-    const focusW = layout.totalWidth * 0.18
+    const focusW = layout.totalWidth * 0.2
     const containerAR = containerSize.width / Math.max(containerSize.height, 1)
     const focusH = focusW / containerAR
 
     setViewBox({
-      x: pos.x - focusW / 2,
-      y: trainY - focusH / 2,
+      x: Math.max(-60, pos.x - focusW / 2),
+      y: Math.max(-20, trainY - focusH / 2),
       w: focusW,
       h: focusH,
     })
     setIsFocusedOnTrain(true)
-  }, [focusedTrainId, liveTrains, layout, computeTrainY, containerSize])
+  }, [focusedTrainId, followTrainLock, corridorTrains, liveTrains, lineId, layout, kmToPixels, corridorConfig.stations, computeTrainY, containerSize])
+
+  // Minimap click handler to jump camera directly to clicked km
+  const handleMinimapClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+      const targetX = ratio * layout.totalWidth
+      setFollowTrainLock(false)
+      setViewBox((prev) => ({
+        ...prev,
+        x: Math.max(-60, Math.min(layout.totalWidth - prev.w + 60, targetX - prev.w / 2)),
+      }))
+    },
+    [layout.totalWidth]
+  )
+
+  const minimapConverter = useMemo(
+    () =>
+      new GPSToMapConverter(
+        { width: layout.totalWidth, height: layout.totalHeight, paddingX: 150, paddingY: 40 },
+        kmToPixels,
+        corridorConfig.stations.map((s) => ({ id: s.id, name: s.name, lat: s.lat, lng: s.lng }))
+      ),
+    [layout.totalWidth, layout.totalHeight, kmToPixels, corridorConfig.stations]
+  )
 
   // ── Track direction grouping for labels ──
   const upTracks = layout.continuousTracks.filter(t => t.id.startsWith('up'))
@@ -789,12 +853,14 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden bg-slate-950 text-slate-100 select-none flex flex-col font-sans">
       {/* 1. TOP HEADER & TELEMETRY CONTROL BAR */}
-      <div className="flex-shrink-0 z-20 px-3 py-2 bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between gap-3 text-xs">
+      <div className="flex-shrink-0 z-20 px-3 py-2 bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between gap-2 text-xs flex-wrap">
         {/* Left: Corridor Title & Signals Summary */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-bold tracking-wide text-slate-200">
-            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span>CSMT – KALYAN CORRIDOR</span>
+            <Radio className={`w-4 h-4 animate-pulse ${isSecr ? 'text-amber-400' : 'text-emerald-400'}`} />
+            <span>
+              {isSecr ? 'SECR · DURG — RAIPUR — BILASPUR' : 'CR · CSMT — KALYAN CORRIDOR'}
+            </span>
           </div>
 
           <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-700 text-[11px]">
@@ -822,28 +888,53 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
           </div>
         </div>
 
-        {/* Right: Live Trains Stats & Time */}
-        <div className="flex items-center gap-3">
-          {liveTrainCount > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400 font-medium">Live Trains:</span>
-              <div className="flex items-center gap-1.5">
-                {Object.entries(TRAIN_TYPE_COLORS).map(([type, color]) => {
-                  const count = countByType[type] || 0
-                  if (count === 0) return null
-                  return (
-                    <span
-                      key={type}
-                      className="px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1"
-                      style={{ backgroundColor: color }}
-                    >
-                      {TRAIN_TYPE_LABELS[type as keyof typeof TRAIN_TYPE_LABELS]?.split(' ')[0]}: {count}
-                    </span>
-                  )
-                })}
-              </div>
+        {/* Right: Corridor Train Stats, Stringline Toggle & Time */}
+        <div className="flex items-center gap-2.5">
+          {corridorTrains.length > 0 && (
+            <div className="hidden xl:flex items-center gap-1.5">
+              {Object.entries(TRAIN_TYPE_COLORS).map(([type, color]) => {
+                const count = corridorCountByType[type] || 0
+                if (count === 0) return null
+                return (
+                  <span
+                    key={type}
+                    className="px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1"
+                    style={{ backgroundColor: color }}
+                  >
+                    {TRAIN_TYPE_LABELS[type as keyof typeof TRAIN_TYPE_LABELS]?.split(' ')[0]}: {count}
+                  </span>
+                )
+              })}
             </div>
           )}
+
+          {focusedTrainId && (
+            <button
+              onClick={() => setFollowTrainLock((v) => !v)}
+              className={`px-2 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all border ${
+                followTrainLock
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+              }`}
+              title="Toggle Follow-Train Camera Lock"
+            >
+              <Crosshair className="w-3 h-3" />
+              {followTrainLock ? `Following ${focusedTrainId.replace('SECR_', '')}` : 'Follow'}
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowStringline((s) => !s)}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all border ${
+              showStringline
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.25)]'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+            }`}
+            title="Toggle Live Time-Distance Stringline Trajectory Chart"
+          >
+            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            Stringline Graph
+          </button>
 
           <div className="text-[11px] font-mono text-emerald-400 bg-slate-950 px-2.5 py-1 rounded border border-emerald-500/30 font-semibold">
             {update?.currentTime
@@ -1148,7 +1239,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
             const originStationName = isSecr ? 'DURG' : 'CSMT'
 
             const stationTooltip = isRaipurJn
-              ? `⭐ RAIPUR JUNCTION (R)\n🏢 Division Headquarters: DRM Raipur (SECR)\n📍 Distance: ${station.kmFromStart.toFixed(1)} km from ${originStationName}\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}\n🚆 Central Section Controller Dispatch Cabin • 7 Platforms`
+              ? `⭐ RAIPUR JUNCTION (R)\n🏢 Division Headquarters: DRM Raipur (SECR)\n📍 Distance: ${station.kmFromStart.toFixed(1)} km from ${originStationName}\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}\n🚆 Central Section Controller Dispatch Cabin`
               : `🚉 ${displayName}\n📍 Distance: ${station.kmFromStart.toFixed(1)} km from ${originStationName}\n🌐 Lat: ${station.lat.toFixed(5)}, Lng: ${station.lng.toFixed(5)}`
 
             return (
@@ -1230,6 +1321,40 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                     {isRaipurJn ? `DIVISION HQ • KM ${station.kmFromStart.toFixed(1)}` : `KM ${station.kmFromStart.toFixed(1)}`}
                   </text>
                 </g>
+
+                {/* Junction Turnout Crossovers (Slow ↔ Fast point switches) */}
+                {(quickStations.includes(station.name) && upTracks.length >= 2) && (
+                  <g opacity={0.45} stroke="#94a3b8" strokeWidth={1.3} strokeDasharray="3,2">
+                    <line
+                      x1={x - 36}
+                      y1={upTracks[0].y + TRACK_HEIGHT / 2}
+                      x2={x - 10}
+                      y2={upTracks[1].y + TRACK_HEIGHT / 2}
+                    />
+                    <line
+                      x1={x + 10}
+                      y1={upTracks[1].y + TRACK_HEIGHT / 2}
+                      x2={x + 36}
+                      y2={upTracks[0].y + TRACK_HEIGHT / 2}
+                    />
+                  </g>
+                )}
+                {(quickStations.includes(station.name) && downTracks.length >= 2) && (
+                  <g opacity={0.45} stroke="#94a3b8" strokeWidth={1.3} strokeDasharray="3,2">
+                    <line
+                      x1={x - 36}
+                      y1={downTracks[0].y + TRACK_HEIGHT / 2}
+                      x2={x - 10}
+                      y2={downTracks[1].y + TRACK_HEIGHT / 2}
+                    />
+                    <line
+                      x1={x + 10}
+                      y1={downTracks[1].y + TRACK_HEIGHT / 2}
+                      x2={x + 36}
+                      y2={downTracks[0].y + TRACK_HEIGHT / 2}
+                    />
+                  </g>
+                )}
 
                 {/* Vertical Platform Backing Capsule */}
                 <rect
@@ -1424,12 +1549,14 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
             )
           })}
 
-          {/* 4. LIVE TRAINS LAYER */}
+          {/* 4. LIVE TRAINS LAYER (Corridor-accurate coordinates + 60fps transitions) */}
           <LiveTrainsLayer
             trains={liveTrains}
             mapWidth={layout.totalWidth}
             mapHeight={layout.totalHeight}
-            kmToPixels={KM_TO_PIXELS}
+            kmToPixels={kmToPixels}
+            paddingX={150}
+            stations={corridorConfig.stations}
             lineId={lineId}
             computeTrainY={computeTrainY}
             focusedTrainId={focusedTrainId}
@@ -1455,6 +1582,76 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
           </div>
         )}
       </div>
+
+      {/* 4B. INTERACTIVE FULL-CORRIDOR MINIMAP RADAR BAR */}
+      <div className="flex-shrink-0 bg-slate-900/90 border-t border-slate-800 px-3 py-1.5 flex items-center gap-3 z-20">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex-shrink-0">
+          Minimap ({corridorTrains.length} Active):
+        </span>
+        <div
+          onClick={handleMinimapClick}
+          className="relative flex-1 h-6 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden cursor-pointer"
+          title="Click anywhere along the corridor minimap to jump camera"
+        >
+          {/* Baseline line */}
+          <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[2px] bg-slate-800" />
+
+          {/* Station ticks */}
+          {corridorConfig.stations.map((st) => {
+            const x = layout.stationPositions.get(st.name) || 0
+            const pct = Math.max(1, Math.min(99, (x / layout.totalWidth) * 100))
+            const isMajor = st.name === 'R' || st.name === 'DADAR' || st.name === 'THANE'
+            return (
+              <div
+                key={`mm-${st.name}`}
+                style={{ left: `${pct}%` }}
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 ${
+                  isMajor ? 'w-1.5 h-3.5 bg-amber-400 rounded-sm' : 'w-[2px] h-2 bg-slate-600'
+                }`}
+              />
+            )
+          })}
+
+          {/* Live train dots */}
+          {corridorTrains.map((tr) => {
+            const posX = minimapConverter.getXPosition(tr.lat, tr.lng)
+            const pct = Math.max(1, Math.min(99, (posX / layout.totalWidth) * 100))
+            const color = tr.signalAspect === 'RED' ? '#ef4444' : TRAIN_TYPE_COLORS[tr.type] || '#38bdf8'
+            const isFocused = tr.train_id === focusedTrainId
+            return (
+              <div
+                key={`mm-tr-${tr.train_id}`}
+                style={{ left: `${pct}%`, backgroundColor: color }}
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full transition-all duration-700 ${
+                  isFocused ? 'w-3 h-3 ring-2 ring-yellow-400 z-10' : 'w-2 h-2'
+                }`}
+                title={`${tr.train_id} (${Math.round(tr.speed)} km/h)`}
+              />
+            )
+          })}
+
+          {/* Current Camera Viewport Box */}
+          <div
+            style={{
+              left: `${Math.max(0, Math.min(100, (viewBox.x / layout.totalWidth) * 100))}%`,
+              width: `${Math.max(4, Math.min(100, (viewBox.w / layout.totalWidth) * 100))}%`,
+            }}
+            className="absolute top-0 bottom-0 border border-cyan-400/70 bg-cyan-400/10 rounded pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {/* 4C. TOGGLEABLE TIME-DISTANCE STRINGLINE TRAJECTORY GRAPH */}
+      {showStringline && (
+        <StringlineChart
+          lineId={lineId}
+          stations={corridorConfig.stations}
+          trains={liveTrains}
+          currentTime={update?.currentTime}
+          onTrainClick={onTrainClick}
+          onClose={() => setShowStringline(false)}
+        />
+      )}
 
       {/* 5. SECTOR BLOCKAGE DIALOG */}
       {selectedSectorForBlockage && (

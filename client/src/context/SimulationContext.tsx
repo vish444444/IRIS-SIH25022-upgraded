@@ -105,44 +105,49 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
         
         // Convert receiver train data to TrainUpdate format
         const trains: TrainUpdate[] = receiverTrains.map((train: any) => {
-          // Determine state based on speed - if speed is 0 or very low, train is stopped
           const speedKmh = train.speed || 0;
           const speedMs = speedKmh / 3.6;
           const isMoving = train.isMoving !== undefined ? train.isMoving : speedKmh > 0.5;
-          
-          // Map to TrainState enum
+          const isSignalHold = train.signalAspect === "RED" && !isMoving;
+
           let state: TrainState = TrainState.STOPPED;
-          if (isMoving && speedKmh > 5) {
+          if (isMoving && speedKmh > 12) {
             state = TrainState.CRUISING;
           } else if (isMoving && speedKmh > 0.5) {
             state = TrainState.ACCELERATING;
           } else if (speedKmh === 0) {
             state = TrainState.STOPPED;
           }
-          
+
           return {
             id: train.train_id,
-            position: 0, // Not available from receiver
+            position: Math.round((train.progress || 0) * 1000),
             speed: speedMs,
-            currentPipeline: train.sectorId || '',
-            nextPipeline: null,
+            currentPipeline: train.sectorId || `${train.currentStation || ""}-${train.nextStation || ""}`,
+            nextPipeline: train.nextStation || null,
             state,
             gps: {
               latitude: train.lat,
               longitude: train.lng,
               speed: speedKmh,
             },
-            delay: 0, // Can be calculated from timetable if needed
-            recommendedSpeed: 0,
+            delay: train.delaySeconds || 0,
+            recommendedSpeed: train.signalAspect === "YELLOW" ? 42 / 3.6 : train.signalAspect === "RED" ? 0 : speedMs,
             trainType: train.type,
+            lineId: train.line_id,
             destination: train.destination,
-            currentSection: train.sectorId || '',
+            currentSection: train.sectorId || "",
             nextSection: null,
             currentPosition: { latitude: train.lat, longitude: train.lng },
             previousSpeed: train.speedHistory?.length > 1
               ? train.speedHistory[train.speedHistory.length - 2].speed
               : speedKmh,
-            disruptionActive: false,
+            signalAspect: train.signalAspect || "GREEN",
+            stateReason: train.stateReason,
+            currentStation: train.currentStation,
+            nextStation: train.nextStation,
+            speedHistory: train.speedHistory,
+            disruptionActive: isSignalHold,
             class: train.type === 'ac' ? 'AC Local' : train.type === 'womens' ? 'Ladies Special' : train.type === 'fast' ? 'Fast Local' : undefined,
           };
         });
@@ -159,16 +164,50 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
               return d;
             })();
 
+        // Build live delay forecasts from delayed / signal-held trains
+        const liveForecasts: Forecast[] = [];
+        trains.forEach((tr) => {
+          if (tr.delay > 15 || tr.signalAspect === "RED") {
+            const estDelay = Math.max(tr.delay, tr.signalAspect === "RED" ? 45 : 0);
+            const origArr = new Date(simulationTime.getTime() + 12 * 60 * 1000);
+            const fcArr = new Date(origArr.getTime() + estDelay * 1000);
+            const followingSameDir = trains.filter(
+              (other) =>
+                other.id !== tr.id &&
+                other.lineId === tr.lineId &&
+                other.destination === tr.destination
+            );
+            liveForecasts.push({
+              trainId: tr.id,
+              affectedTrains: [
+                {
+                  trainId: tr.id,
+                  originalArrival: origArr,
+                  forecastArrival: fcArr,
+                  delay: estDelay,
+                },
+                ...followingSameDir.slice(0, 2).map((other, idx) => ({
+                  trainId: other.id,
+                  originalArrival: new Date(origArr.getTime() + (idx + 1) * 5 * 60 * 1000),
+                  forecastArrival: new Date(origArr.getTime() + (idx + 1) * 5 * 60 * 1000 + Math.round(estDelay * 0.6) * 1000),
+                  delay: Math.round(estDelay * 0.6),
+                })),
+              ],
+            });
+          }
+        });
+
         const simulationUpdate: SimulationUpdate = {
           trains,
-          pipelines: [], // Not available from receiver
-          emergencyEvents: [], // Not available from receiver
-          forecasts: [], // Not available from receiver
-          trackClosures: [], // Not available from receiver
+          pipelines: [],
+          emergencyEvents: [],
+          forecasts: liveForecasts,
+          trackClosures: [],
           currentTime: simulationTime,
         };
 
         setUpdate(simulationUpdate);
+        setForecasts(liveForecasts);
         setIsConnected(true);
 
         const trainsMap = new Map<string, TrainUpdate>();
@@ -177,46 +216,61 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
         });
         setTrains(trainsMap);
 
+        // Detect contenders sharing a sector OR approaching the same junction station on the same corridor
         const contenders = Array.from(trainsMap.values()).filter(
-          (train) => (train.currentSection || train.currentPipeline) && train.state !== TrainState.SCHEDULED
+          (train) => (train.currentSection || train.nextStation) && train.state !== TrainState.SCHEDULED
         );
         const bySection = new Map<string, TrainUpdate[]>();
         contenders.forEach((train) => {
-          const key = train.currentSection || train.currentPipeline?.split('_')[0] || 'MAIN';
-          const group = bySection.get(key) || [];
-          group.push(train);
-          bySection.set(key, group);
+          const linePrefix = train.lineId || 'CR';
+          if (train.currentSection) {
+            const key = `${linePrefix}:${train.currentSection}`;
+            const group = bySection.get(key) || [];
+            group.push(train);
+            bySection.set(key, group);
+          }
+          if (train.nextStation) {
+            const stKey = `${linePrefix}:JN-${train.nextStation}`;
+            const group = bySection.get(stKey) || [];
+            if (!group.some((g) => g.id === train.id)) {
+              group.push(train);
+              bySection.set(stKey, group);
+            }
+          }
         });
-        const conflictGroup = Array.from(bySection.values()).find((group) => group.length > 1);
+        const conflictGroup = Array.from(bySection.entries()).find(([, group]) => group.length > 1);
         if (conflictGroup) {
+          const [resourceKey, groupTrains] = conflictGroup;
+          const cleanResource = resourceKey.split(':').slice(1).join(':');
           const getPriority = (id: string, trainClass?: string): number => {
             const upper = id.toUpperCase();
             if (upper.includes('VB') || upper.includes('VANDE')) return 1;
             if (upper.includes('EXP') || upper.includes('INT') || trainClass === 'Fast Local') return 2;
-            if (upper.includes('MEMU') || trainClass === 'Slow Local') return 3;
+            if (upper.includes('MEMU') || trainClass === 'AC Local' || trainClass === 'Slow Local') return 3;
             if (upper.includes('COAL') || upper.includes('STEEL') || upper.includes('FREIGHT')) return 4;
             return 3;
           };
 
-          const conflictTrains: ConflictTrainInput[] = conflictGroup.map((train, index) => ({
+          const conflictTrains: ConflictTrainInput[] = groupTrains.slice(0, 4).map((train, index) => ({
             train_id: train.id,
-            resource_id: train.currentSection || train.currentPipeline?.split('_')[0] || 'JUNCTION',
+            resource_id: cleanResource,
             priority: getPriority(train.id, train.class),
             requested_entry_sec: index * 30,
             transit_seconds: 90,
             prediction: {
-              current_delay_min: train.delay || 0,
+              current_delay_min: Math.round((train.delay || 0) / 60 * 10) / 10,
+              train_type: train.trainType === 'fast' || train.trainType === 'ac' ? 'fast' : 'slow',
               current_speed_kmh: train.gps?.speed || train.speed * 3.6 || 0,
               previous_speed_kmh: train.previousSpeed || train.gps?.speed || 0,
-              section_occupancy: 1,
+              section_occupancy: Math.min(1, groupTrains.length * 0.35),
               trains_ahead: index,
               disruption_active: train.disruptionActive || false,
             },
-            current_delay_min: train.delay || 0,
+            current_delay_min: Math.round((train.delay || 0) / 60 * 10) / 10,
           }));
           const signature = conflictTrains.map((train) => `${train.train_id}:${train.resource_id}`).sort().join('|');
           const lastRun = analysisCooldown.current.get(signature) || 0;
-          if (Date.now() - lastRun > 30000) {
+          if (Date.now() - lastRun > 25000) {
             analysisCooldown.current.set(signature, Date.now());
             getRecommendation(conflictTrains)
               .then((result) => {
@@ -234,9 +288,7 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
           }
         }
 
-        // Pipelines, forecasts not available from receiver
         setPipelines(new Map());
-        setForecasts([]);
         setTrackClosures([]);
         
         // Fetch emergency events from logs

@@ -30,11 +30,17 @@ export interface TrainUpdate {
   recommendedSpeed: number;
   class?: TrainClass;
   trainType?: string;
+  lineId?: string;
   destination?: string;
   currentSection?: string;
   nextSection?: string | null;
   currentPosition?: { latitude: number; longitude: number };
   previousSpeed?: number;
+  signalAspect?: "GREEN" | "DOUBLE_YELLOW" | "YELLOW" | "RED";
+  stateReason?: string;
+  currentStation?: string;
+  nextStation?: string;
+  speedHistory?: Array<{ speed: number; timestamp: number }>;
   predictedDestinationArrival?: Date | string | null;
   disruptionActive?: boolean;
   scheduledArrival?: Date | string;

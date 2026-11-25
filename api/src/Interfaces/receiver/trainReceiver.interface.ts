@@ -3,6 +3,8 @@ export type TrainType = "slow" | "fast" | "womens" | "ac";
 // Supported railway line identifiers
 export type LineId = "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
 
+export type SignalAspect = "GREEN" | "DOUBLE_YELLOW" | "YELLOW" | "RED";
+
 export interface TrainReceiverPayload {
   train_id: string;
   lat: number;
@@ -17,6 +19,12 @@ export interface TrainReceiverPayload {
   laneIndex?: number;
   laneCount?: number;
   sectorId?: string;
+  delaySeconds?: number;
+  signalAspect?: SignalAspect;
+  currentStation?: string;
+  nextStation?: string;
+  progress?: number;
+  stateReason?: string;
 }
 
 export interface StoredTrainData {
@@ -33,6 +41,12 @@ export interface StoredTrainData {
   laneIndex?: number;
   laneCount?: number;
   sectorId?: string;
+  delaySeconds?: number;
+  signalAspect?: SignalAspect;
+  currentStation?: string;
+  nextStation?: string;
+  progress?: number;
+  stateReason?: string;
   // Derived values
   lastUpdateTime: Date;
   smoothedSpeed: number;

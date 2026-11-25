@@ -4,8 +4,9 @@
 
 export type LiveTrainType = "slow" | "fast" | "womens" | "ac";
 
-// Supported railway line identifiers
 export type LineId = "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
+
+export type SignalAspect = "GREEN" | "DOUBLE_YELLOW" | "YELLOW" | "RED";
 
 export interface LiveTrainData {
   train_id: string;
@@ -21,6 +22,12 @@ export interface LiveTrainData {
   laneIndex?: number;
   laneCount?: number;
   sectorId?: string;
+  delaySeconds?: number;
+  signalAspect?: SignalAspect;
+  currentStation?: string;
+  nextStation?: string;
+  progress?: number;
+  stateReason?: string;
   // Derived values from TrainStore
   lastUpdateTime: string;
   smoothedSpeed: number;
@@ -38,22 +45,16 @@ export interface LiveTrainResponse {
   trains: LiveTrainData[];
 }
 
-/**
- * Color mapping for train types
- */
 export const TRAIN_TYPE_COLORS: Record<LiveTrainType, string> = {
-  slow: "#3b82f6",     // blue
-  fast: "#ef4444",     // red
-  womens: "#ec4899",   // pink
-  ac: "#06b6d4",       // cyan
+  slow: "#3b82f6",
+  fast: "#ef4444",
+  womens: "#ec4899",
+  ac: "#06b6d4",
 };
 
-/**
- * Human-readable labels for train types
- */
 export const TRAIN_TYPE_LABELS: Record<LiveTrainType, string> = {
-  slow: "Slow Local",
-  fast: "Fast Local",
+  slow: "Slow / MEMU",
+  fast: "Express / Fast",
   womens: "Women's Special",
-  ac: "AC Local",
+  ac: "Vande Bharat / AC",
 };

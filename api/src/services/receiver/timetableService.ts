@@ -205,8 +205,8 @@ export class TimetableService {
       let platform: number | null = null;
 
       if (timetableEntry && timetableEntry.stop_times.length > 0) {
-        // Find current station based on GPS position
-        const station = this.getStationFromCoordinates(train.lat, train.lng);
+        // Find current station based on telemetry or GPS position
+        const station = train.currentStation || this.getStationFromCoordinates(train.lat, train.lng);
         currentStation = station;
 
         // Find next station in route
@@ -215,22 +215,29 @@ export class TimetableService {
             (stop) => stop.station === station
           );
           if (currentIndex >= 0 && currentIndex < timetableEntry.stop_times.length - 1) {
-            nextStation = timetableEntry.stop_times[currentIndex + 1].station;
+            nextStation = train.nextStation || timetableEntry.stop_times[currentIndex + 1].station;
             const currentStop = timetableEntry.stop_times[currentIndex];
             const nextStop = timetableEntry.stop_times[currentIndex + 1];
             
             scheduledArrival = this.parseTimeToDate(nextStop.arrival, baseDate);
             scheduledDeparture = this.parseTimeToDate(currentStop.departure, baseDate);
+          } else if (train.nextStation) {
+            nextStation = train.nextStation;
           }
         }
       }
 
-      // Calculate delays
-      const arrivalDelay = scheduledArrival
-        ? Math.max(0, (now.getTime() - scheduledArrival.getTime()) / 1000)
+      // Calculate delays (prefer simulator real physics delay if provided)
+      const simTime = new Date(train.timestamp || now.getTime());
+      const arrivalDelay = typeof train.delaySeconds === "number"
+        ? train.delaySeconds
+        : scheduledArrival
+        ? Math.max(0, (simTime.getTime() - scheduledArrival.getTime()) / 1000)
         : 0;
-      const departureDelay = scheduledDeparture
-        ? Math.max(0, (now.getTime() - scheduledDeparture.getTime()) / 1000)
+      const departureDelay = typeof train.delaySeconds === "number"
+        ? train.delaySeconds
+        : scheduledDeparture
+        ? Math.max(0, (simTime.getTime() - scheduledDeparture.getTime()) / 1000)
         : 0;
 
       return {
@@ -338,6 +345,7 @@ export class TimetableService {
 
   private getStationFromCoordinates(lat: number, lng: number): string | null {
     const stations = [
+      // Central Railway (CSMT - Kalyan)
       { name: 'CSMT', lat: 18.939821, lng: 72.835468 },
       { name: 'MASJID', lat: 18.953611, lng: 72.838056 },
       { name: 'SANDHURST_ROAD', lat: 18.960826, lng: 72.839511 },
@@ -364,18 +372,40 @@ export class TimetableService {
       { name: 'DOMBIVLI', lat: 19.218219, lng: 73.086900 },
       { name: 'THAKURLI', lat: 19.225770, lng: 73.097680 },
       { name: 'KALYAN', lat: 19.235250, lng: 73.130500 },
+      // SECR Raipur Division (Durg - Raipur - Bilaspur)
+      { name: 'DURG', lat: 21.1895, lng: 81.2828 },
+      { name: 'BPHB', lat: 21.2091, lng: 81.3653 },
+      { name: 'BIA', lat: 21.2144, lng: 81.4089 },
+      { name: 'KMI', lat: 21.2294, lng: 81.5147 },
+      { name: 'SZB', lat: 21.2403, lng: 81.5724 },
+      { name: 'SRWN', lat: 21.2472, lng: 81.6033 },
+      { name: 'R', lat: 21.2588, lng: 81.6296 },
+      { name: 'WRC', lat: 21.2721, lng: 81.642 },
+      { name: 'URK', lat: 21.2947, lng: 81.6521 },
+      { name: 'MDH', lat: 21.3533, lng: 81.6782 },
+      { name: 'SLH', lat: 21.439, lng: 81.6967 },
+      { name: 'BKTH', lat: 21.5031, lng: 81.7145 },
+      { name: 'TLD', lat: 21.5615, lng: 81.7481 },
+      { name: 'HN', lat: 21.6508, lng: 81.7963 },
+      { name: 'BYT', lat: 21.7381, lng: 81.8291 },
+      { name: 'NPI', lat: 21.849, lng: 81.8972 },
+      { name: 'DGS', lat: 21.9211, lng: 81.9723 },
+      { name: 'BYL', lat: 21.9682, lng: 82.0289 },
+      { name: 'DPH', lat: 22.0322, lng: 82.0911 },
+      { name: 'BSP', lat: 22.0805, lng: 82.1648 },
     ];
 
-    const threshold = 0.01;
+    let bestStation: string | null = null;
+    let bestDist = 0.015;
     for (const station of stations) {
-      const latDiff = Math.abs(station.lat - lat);
-      const lngDiff = Math.abs(station.lng - lng);
-      if (latDiff < threshold && lngDiff < threshold) {
-        return station.name;
+      const dist = Math.hypot(station.lat - lat, station.lng - lng);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestStation = station.name;
       }
     }
 
-    return null;
+    return bestStation;
   }
 }
 

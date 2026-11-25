@@ -1,4 +1,4 @@
-import { TrainState } from "./trainSimulator";
+import { TrainState, SignalAspect } from "./trainSimulator";
 import { TrainType } from "./timetableLoader";
 
 export interface ReceiverPayload {
@@ -10,28 +10,30 @@ export interface ReceiverPayload {
   line_id: "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
   destination: string;
   timestamp: number;
-  // Track allocation info
-  trackType?: string; // e.g., "up_slow", "down_fast"
-  trackVariant?: string; // e.g., "up_slow_1", "up_slow_2" for split tracks
-  laneIndex?: number; // 0-based lane index
-  laneCount?: number; // total lanes for the segment
-  sectorId?: string; // active sector occupancy identifier
+  trackType?: string;
+  trackVariant?: string;
+  laneIndex?: number;
+  laneCount?: number;
+  sectorId?: string;
+  delaySeconds?: number;
+  signalAspect?: SignalAspect;
+  currentStation?: string;
+  nextStation?: string;
+  progress?: number;
+  stateReason?: string;
 }
 
 const API_BASE_URL = process.env.API_URL || "http://localhost:3000";
 const RECEIVER_ENDPOINT = `${API_BASE_URL}/api/receiver`;
 
-/**
- * Converts TrainState to ReceiverPayload
- */
 export function trainStateToPayload(state: TrainState, simTime?: number): ReceiverPayload {
   return {
     train_id: state.train_id,
     lat: state.lat,
     lng: state.lng,
-    speed: Math.round(state.speed * 100) / 100, // Round to 2 decimal places
+    speed: Math.round(state.speed * 100) / 100,
     type: state.type,
-    line_id: ((state as any).line_id || (state.train_id.startsWith("SECR") ? "secr-raipur" : "csmt-kalyan")) as any,
+    line_id: (state.line_id || (state.train_id.startsWith("SECR") ? "secr-raipur" : "csmt-kalyan")) as any,
     destination: state.destination,
     timestamp: simTime || Date.now(),
     trackType: state.trackType,
@@ -39,12 +41,15 @@ export function trainStateToPayload(state: TrainState, simTime?: number): Receiv
     laneIndex: state.laneIndex,
     laneCount: state.laneCount,
     sectorId: state.sectorId,
+    delaySeconds: state.delaySeconds ?? 0,
+    signalAspect: state.signalAspect ?? "GREEN",
+    currentStation: state.currentStation,
+    nextStation: state.nextStation,
+    progress: state.progress,
+    stateReason: state.stateReason,
   };
 }
 
-/**
- * Sends train data to the receiver API
- */
 export async function sendTrainData(state: TrainState, simTime?: number): Promise<boolean> {
   const payload = trainStateToPayload(state, simTime);
 
@@ -67,18 +72,11 @@ export async function sendTrainData(state: TrainState, simTime?: number): Promis
 
     return true;
   } catch (error) {
-    console.error(
-      `[NetworkClient] Error sending train ${state.train_id}:`,
-      error
-    );
+    console.error(`[NetworkClient] Error sending train ${state.train_id}:`, error);
     return false;
   }
 }
 
-/**
- * Sends multiple train states to the receiver API
- * Returns the number of successful sends
- */
 export async function sendAllTrainData(
   states: Map<string, TrainState>,
   simTime?: number
@@ -96,52 +94,15 @@ export async function sendAllTrainData(
   return { success, failed };
 }
 
-/**
- * Batch send train data with retry logic
- */
-export async function sendBatchWithRetry(
-  states: Map<string, TrainState>,
-  simTime?: number,
-  maxRetries: number = 3,
-  retryDelayMs: number = 1000
-): Promise<{ success: number; failed: number }> {
-  let attempt = 0;
-  let lastResult = { success: 0, failed: 0 };
-
-  while (attempt < maxRetries) {
-    lastResult = await sendAllTrainData(states, simTime);
-
-    if (lastResult.failed === 0) {
-      return lastResult;
-    }
-
-    attempt++;
-    if (attempt < maxRetries) {
-      console.log(
-        `[NetworkClient] Retry ${attempt}/${maxRetries} after ${lastResult.failed} failures`
-      );
-      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
-    }
-  }
-
-  return lastResult;
-}
-
-/**
- * Health check for the receiver API
- */
 export async function checkApiHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/receiver`, {
-      method: "GET",
-    });
+    const response = await fetch(`${API_BASE_URL}/api/receiver`, { method: "GET" });
     return response.ok;
   } catch {
     return false;
   }
 }
 
-/** Returns the backend's current blocked-sector snapshot for the simulator. */
 export async function getBlockedSectorIds(): Promise<Set<string>> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/status/sector-blockages`);
@@ -156,8 +117,6 @@ export async function getBlockedSectorIds(): Promise<Set<string>> {
 export default {
   sendTrainData,
   sendAllTrainData,
-  sendBatchWithRetry,
   checkApiHealth,
   getBlockedSectorIds,
-  trainStateToPayload,
 };

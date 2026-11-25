@@ -30,7 +30,7 @@ interface UseLiveTrainsReturn {
  * Hook to fetch and poll live train data from the receiver endpoint
  */
 export function useLiveTrains(options: UseLiveTrainsOptions = {}): UseLiveTrainsReturn {
-  const { pollInterval = 2000, enabled = true } = options;
+  const { pollInterval = 1000, enabled = true } = options;
 
   const [trains, setTrains] = useState<LiveTrainData[]>([]);
   const [totalTrains, setTotalTrains] = useState(0);

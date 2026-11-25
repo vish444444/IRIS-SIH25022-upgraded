@@ -15,7 +15,6 @@ import { TrackClosurePanel } from '../components/simulation/TrackClosurePanel'
 import { SectorBlockagePanel } from '../components/simulation/SectorBlockagePanel'
 import { TimetablePanel } from '../components/simulation/TimetablePanel'
 import { TrainLogsPanel } from '../components/simulation/TrainLogsPanel'
-import { VduDisplay } from '../components/simulation/vdu/VduDisplay'
 import { TrainUpdate, TrainState } from '../types/simulation.types'
 import { LineId } from '../types/liveTrains.types'
 import { ModeToggle } from '../components/ModeToggle'
@@ -39,12 +38,13 @@ import {
   Zap,
   LayoutDashboard,
   Brain,
-  Monitor,
   LogOut,
   User as UserIcon,
   Sparkles,
   Shield,
-  Home
+  Home,
+  RotateCcw,
+  Gauge
 } from 'lucide-react'
 
 const getApiBaseUrl = () => {
@@ -72,12 +72,12 @@ const SimulationContent: React.FC = () => {
   >(null)
   const [simulationRunning, setSimulationRunning] = useState(false)
   const [selectedLineId, setSelectedLineId] = useState<LineId>('secr-raipur')
-  const [activeTab, setActiveTab] = useState<'overview' | 'trains' | 'timetable' | 'logs' | 'controls' | 'ai' | 'vdu'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'trains' | 'timetable' | 'logs' | 'controls' | 'ai'>('overview')
   const [receiverStats, setReceiverStats] = useState<any>(null)
   const [mapFullView, setMapFullView] = useState(false)
-  const [viewMode, setViewMode] = useState<'vdu' | 'map'>('vdu')
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(5)
 
-  // Check if simulator is running by checking if receiver has train data and control state
+  // Check if simulator is running and sync speed multiplier
   useEffect(() => {
     const apiUrl = getApiBaseUrl()
     if (!apiUrl || typeof apiUrl !== 'string' || !apiUrl.startsWith('http')) {
@@ -92,6 +92,9 @@ const SimulationContent: React.FC = () => {
           axios.get(`${apiUrl}/api/receiver/control`)
         ])
         setSimulationRunning(controlRes.data.running)
+        if (typeof controlRes.data.speedMultiplier === 'number') {
+          setSpeedMultiplier(controlRes.data.speedMultiplier)
+        }
         setReceiverStats(receiverRes.data)
       } catch (error) {
         console.error('Failed to check receiver status:', error)
@@ -100,7 +103,7 @@ const SimulationContent: React.FC = () => {
     }
 
     checkStatus()
-    const interval = setInterval(checkStatus, 5000)
+    const interval = setInterval(checkStatus, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -170,6 +173,30 @@ const SimulationContent: React.FC = () => {
     } catch (error) {
       console.error('Failed to stop simulation:', error)
       toast.error("Failed to stop simulation")
+    }
+  }
+
+  const handleSpeedChange = async (mult: number) => {
+    try {
+      setSpeedMultiplier(mult)
+      const response = await axios.post(`${getApiBaseUrl()}/api/receiver/control`, { speedMultiplier: mult })
+      if (response.data.success) {
+        toast.success(`Simulation speed set to ${mult}x`)
+      }
+    } catch (error) {
+      toast.error("Failed to update speed multiplier")
+    }
+  }
+
+  const handleReset = async () => {
+    try {
+      const response = await axios.post(`${getApiBaseUrl()}/api/receiver/control`, { reset: true })
+      if (response.data.success) {
+        setSimulationRunning(true)
+        toast.success("Simulation reset to 06:15 AM peak rush cycle")
+      }
+    } catch (error) {
+      toast.error("Failed to reset simulation")
     }
   }
 
@@ -289,17 +316,43 @@ const SimulationContent: React.FC = () => {
               </span>
             </div>
 
+            {/* Speed Multiplier Control (1x / 5x / 10x / 20x) */}
+            <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-900/90 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700/80">
+              <Gauge className="w-3.5 h-3.5 text-cyan-500 mx-1.5" />
+              {[1, 5, 10, 20].map((mult) => (
+                <button
+                  key={mult}
+                  onClick={() => handleSpeedChange(mult)}
+                  className={`px-2 py-1 rounded-lg text-[11px] font-mono font-bold transition-all ${
+                    speedMultiplier === mult
+                      ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {mult}x
+                </button>
+              ))}
+            </div>
+
             {/* Start/Stop Button matching Landing CTA */}
             <button
               onClick={simulationRunning ? handleStop : handleStart}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold shadow-md hover:scale-[1.02] transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-md hover:scale-[1.02] transition-all duration-200 flex items-center gap-1.5 ${
                 simulationRunning
                   ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/20'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              {simulationRunning ? 'Stop Simulator' : 'Start Simulator'}
+              {simulationRunning ? 'Pause' : 'Start'}
+            </button>
+
+            <button
+              onClick={handleReset}
+              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-500 transition-colors"
+              title="Reset Simulation Cycle to 06:15 AM"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
 
             {/* User Profile Badge */}
@@ -420,32 +473,6 @@ const SimulationContent: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2.5">
-                    {/* View Mode Selector: VDU Interlocking vs Corridor Map */}
-                    <div className="flex items-center bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
-                      <button
-                        onClick={() => setViewMode('vdu')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          viewMode === 'vdu'
-                            ? 'bg-emerald-600 text-white font-extrabold shadow-[0_0_12px_rgba(16,185,129,0.35)]'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <Monitor className="w-3.5 h-3.5" />
-                        DRM VDU (Interlocking)
-                      </button>
-                      <button
-                        onClick={() => setViewMode('map')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          viewMode === 'map'
-                            ? 'bg-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(37,99,235,0.35)]'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <MapPin className="w-3.5 h-3.5" />
-                        Corridor Map
-                      </button>
-                    </div>
-
                     {/* Corridor Selector */}
                     <div className="flex items-center bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                       <button
@@ -485,25 +512,16 @@ const SimulationContent: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto relative min-h-[350px]">
-                  {viewMode === 'vdu' ? (
-                    <VduDisplay
-                      corridor={selectedLineId}
-                      liveTrains={Array.from(trains.values())}
-                      onTrainClick={handleTrainClick}
-                      onOpenAiRecommendation={() => setActiveTab('ai')}
-                    />
-                  ) : (
-                    <JsonCorridorMap
-                      onTrainClick={handleTrainClick}
-                      focusedTrainId={focusedTrainId}
-                      focusedSectorId={focusedSectorId}
-                      lineId={selectedLineId}
-                      onSectorBlockageUpdate={() => {
-                        // Refresh can be handled by the component itself
-                      }}
-                    />
-                  )}
+                <div className="flex-1 overflow-hidden relative min-h-[350px]">
+                  <JsonCorridorMap
+                    onTrainClick={handleTrainClick}
+                    focusedTrainId={focusedTrainId}
+                    focusedSectorId={focusedSectorId}
+                    lineId={selectedLineId}
+                    onSectorBlockageUpdate={() => {
+                      // Refresh can be handled by the component itself
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -565,23 +583,16 @@ const SimulationContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('ai')}
-                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'ai'
+                  className={`relative flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'ai'
                       ? 'bg-emerald-600 text-white font-bold shadow-[0_0_12px_rgba(16,185,129,0.35)]'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 >
-                  <Brain className="w-3.5 h-3.5 text-emerald-300" />
+                  <Brain className="w-3.5 h-3.5 text-emerald-400" />
                   AI
-                </button>
-                <button
-                  onClick={() => setActiveTab('vdu')}
-                  className={`flex-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'vdu'
-                      ? 'bg-amber-500 text-slate-950 font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.35)]'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                    }`}
-                >
-                  <Monitor className="w-3.5 h-3.5" />
-                  VDU
+                  {automaticAnalysis?.recommendations?.length ? (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  ) : null}
                 </button>
               </div>
 
@@ -589,50 +600,49 @@ const SimulationContent: React.FC = () => {
               <div className="flex-1 overflow-y-auto min-h-0">
                 {activeTab === 'overview' && (
                   <div className="flex flex-col gap-3">
-              <div className="bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-3">
-                <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" />
-                  Status
+              <div className="backdrop-blur-md bg-white/80 dark:bg-[#0c1322]/85 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-3.5 shadow-sm">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-emerald-500" />
+                  Live Section Metrics
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-700 rounded">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                      Active
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
+                      Moving
                     </div>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div className="text-lg font-extrabold font-mono text-emerald-500">
                       {activeTrains.length}
                     </div>
                   </div>
-                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-700 rounded">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                      Stopped
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
+                      Held / Dwell
                     </div>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div className="text-lg font-extrabold font-mono text-amber-500">
                       {stoppedTrains.length}
                     </div>
                   </div>
-                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-700 rounded">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
                       Avg Speed
                     </div>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {avgSpeed.toFixed(1)} km/h
+                    <div className="text-lg font-extrabold font-mono text-slate-900 dark:text-white">
+                      {avgSpeed.toFixed(1)} <span className="text-[10px] text-slate-400">kph</span>
                     </div>
                   </div>
-                  <div className="text-center p-2 bg-gray-50 dark:bg-slate-700 rounded">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
                       Emergencies
                     </div>
-                    <div className={`text-lg font-semibold ${activeEmergencies > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                    <div className={`text-lg font-extrabold font-mono ${activeEmergencies > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
                       {activeEmergencies}
                     </div>
                   </div>
                 </div>
                 {receiverStats && (
-                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-600">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Last updated: {new Date(receiverStats.lastUpdated).toLocaleTimeString()}
-                    </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800 flex justify-between items-center text-[10px] font-mono text-slate-400">
+                    <span>Telemetry Sync</span>
+                    <span>{new Date(receiverStats.lastUpdated).toLocaleTimeString()}</span>
                   </div>
                 )}
               </div>
@@ -724,17 +734,6 @@ const SimulationContent: React.FC = () => {
                     <AIRecommendationPanel automaticAnalysis={automaticAnalysis} />
                     <DemoMode />
                     <KPIDashboard />
-                  </div>
-                )}
-
-                {activeTab === 'vdu' && (
-                  <div className="flex flex-col gap-3">
-                    <VduDisplay
-                      corridor={selectedLineId}
-                      liveTrains={Array.from(trains.values())}
-                      onTrainClick={handleTrainClick}
-                      onOpenAiRecommendation={() => setActiveTab('ai')}
-                    />
                   </div>
                 )}
               </div>

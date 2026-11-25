@@ -11,7 +11,6 @@ router.get("/track-closures", trackStatusController.getActiveClosures);
 router.get("/track-closure/:id", trackStatusController.getClosureById);
 router.get("/stations", trackStatusController.getStations);
 router.get("/track-info", trackStatusController.getTrackInfo);
-router.get("/vdu-snapshot", trackStatusController.getVduSnapshot);
 
 // Sector blockage routes
 router.post("/sector-blockage", sectorBlockageController.reportBlockage);

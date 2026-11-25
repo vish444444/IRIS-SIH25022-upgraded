@@ -5,7 +5,6 @@ import { TimetableService } from "../services/receiver/timetableService";
 import { TrainLogService } from "../services/simulation/trainLogService";
 import { TrainLogEventType } from "../Interfaces/simulation/trainLog.interface";
 import auditLogRepository from "../db/repositories/auditLogRepository";
-import { updateVduFromTrain } from "../services/simulation/vduService";
 
 export class ReceiverController {
   private trainStore: TrainStore;
@@ -82,12 +81,6 @@ export class ReceiverController {
 
       // Log train events
       this.logTrainEvents(existingTrain, updatedTrain, isNewTrain);
-
-      // Update VDU state from live telemetry (SECR corridor only)
-      if (payload.line_id === "secr-raipur") {
-        const stationName = payload.sectorId?.split("_")[0] || payload.destination || undefined;
-        updateVduFromTrain(payload.train_id, payload.speed, payload.lat, payload.lng, stationName);
-      }
 
       res.status(200).json({
         success: true,
@@ -722,13 +715,15 @@ export class ReceiverController {
 
   /**
    * GET /receiver/control
-   * Returns whether the simulation is running
+   * Returns simulation control state (running, speedMultiplier, resetGeneration)
    */
   getSimulationControl = (req: Request, res: Response, next: NextFunction): void => {
     try {
       res.status(200).json({
         success: true,
         running: this.trainStore.isSimulationRunning(),
+        speedMultiplier: this.trainStore.getSpeedMultiplier(),
+        resetGeneration: this.trainStore.getResetGeneration(),
       });
     } catch (error) {
       next(error);
@@ -737,21 +732,48 @@ export class ReceiverController {
 
   /**
    * POST /receiver/control
-   * Starts or stops the simulation
+   * Starts, stops, adjusts speed, or resets the simulation
    */
   postSimulationControl = (req: Request, res: Response, next: NextFunction): void => {
     try {
-      const { running } = req.body;
-      if (typeof running !== "boolean") {
+      const { running, speedMultiplier, reset } = req.body;
+
+      if (
+        running === undefined &&
+        speedMultiplier === undefined &&
+        reset === undefined
+      ) {
+        res.status(400).json({ error: "Provide at least one of: running, speedMultiplier, reset" });
+        return;
+      }
+
+      if (running !== undefined && typeof running !== "boolean") {
         res.status(400).json({ error: "running must be a boolean" });
         return;
       }
 
-      this.trainStore.setSimulationRunning(running);
+      if (speedMultiplier !== undefined) {
+        if (typeof speedMultiplier !== "number" || speedMultiplier < 0.5 || speedMultiplier > 50) {
+          res.status(400).json({ error: "speedMultiplier must be a number between 0.5 and 50" });
+          return;
+        }
+        this.trainStore.setSpeedMultiplier(speedMultiplier);
+      }
+
+      if (running !== undefined) {
+        this.trainStore.setSimulationRunning(running);
+      }
+
+      if (reset === true) {
+        this.trainStore.triggerReset();
+      }
+
       res.status(200).json({
         success: true,
-        message: `Simulation ${running ? "started" : "stopped"} successfully`,
+        message: `Simulation control updated`,
         running: this.trainStore.isSimulationRunning(),
+        speedMultiplier: this.trainStore.getSpeedMultiplier(),
+        resetGeneration: this.trainStore.getResetGeneration(),
       });
     } catch (error) {
       next(error);

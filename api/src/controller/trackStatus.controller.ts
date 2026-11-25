@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { TrackStatusService } from "../services/simulation/trackStatusService";
 import { TrackClosureRequest } from "../Interfaces/simulation/trackStatus.interface";
-import { getVduSnapshot } from "../services/simulation/vduService";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -220,22 +219,6 @@ export class TrackStatusController {
         success: true,
         connections,
       });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * GET /api/status/vdu-snapshot
-   * Returns a combined VDU snapshot: platforms, point machines,
-   * axle counters, and signal aspects for the requested corridor.
-   * ⚠ SIMULATED DATA — Not connected to real CRIS/COA/SCADA.
-   */
-  getVduSnapshot = (req: Request, res: Response, next: NextFunction): void => {
-    try {
-      const corridor = (req.query.corridor as string) || "secr-raipur";
-      const snapshot = getVduSnapshot(corridor);
-      res.status(200).json({ success: true, ...snapshot });
     } catch (error) {
       next(error);
     }

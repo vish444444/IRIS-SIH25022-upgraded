@@ -4,7 +4,7 @@ import { simulateAllTrains, TrainState } from "./trainSimulator";
 import { sendAllTrainData, checkApiHealth, getBlockedSectorIds } from "./networkClient";
 
 // Configuration
-const SIMULATION_INTERVAL_MS = 2000; // 2 seconds
+const SIMULATION_INTERVAL_MS = 1000; // 1s high-precision telemetry cycle
 const API_URL = process.env.API_URL || "http://localhost:3000/api/receiver";
 
 // Simulation state
@@ -18,41 +18,65 @@ let simulationTimer: NodeJS.Timeout | null = null;
 let isRunning = false;
 let tickCount = 0;
 
-// Base date for simulation - we'll adjust this to simulate the timetable
-let simulationBaseDate: Date;
-let simulationStartRealTime: number;
-let simulationSpeedMultiplier = 1; // 1 = real-time, 2 = 2x speed, etc.
+// Continuous integrated simulated clock (so dynamic speed changes never jump!)
+let startHour = 6;
+let startMinute = 15; // Start at 06:15 AM so both CR and SECR have dense active trains immediately
+let simTimeMs = 0;
+let lastRealTickMs = Date.now();
+let simulationSpeedMultiplier = 5;
+let lastResetGeneration = 0;
 let blockedSectorIds: Set<string> = new Set();
 
-/**
- * Gets the current simulation time
- * The simulation time advances at the speed multiplier rate
- */
-function getSimulationTime(): Date {
-  const realElapsed = Date.now() - simulationStartRealTime;
-  const simulatedElapsed = realElapsed * simulationSpeedMultiplier;
-  return new Date(simulationBaseDate.getTime() + simulatedElapsed);
+function resetSimulationClock(hour: number = startHour, minute: number = startMinute): void {
+  const baseDate = new Date();
+  baseDate.setHours(hour, minute, 0, 0);
+  simTimeMs = baseDate.getTime();
+  lastRealTickMs = Date.now();
+
+  const midnightBase = new Date();
+  midnightBase.setHours(0, 0, 0, 0);
+  trains = loadTimetable(midnightBase);
+  try {
+    secrTrains = loadSecrTimetable(midnightBase);
+  } catch (err) {
+    console.warn("[Reset] SECR timetable not loaded:", err);
+  }
+  trainStates = new Map();
+  secrTrainStates = new Map();
 }
 
-/**
- * Initializes the simulator
- */
+function getSimulationTime(): Date {
+  return new Date(simTimeMs);
+}
+
+interface ControlSnapshot {
+  running: boolean;
+  speedMultiplier?: number;
+  resetGeneration?: number;
+}
+
+async function fetchControlState(): Promise<ControlSnapshot> {
+  try {
+    const response = await fetch(API_URL.replace("/receiver", "/receiver/control"));
+    if (response.ok) {
+      const data = (await response.json()) as any;
+      return {
+        running: data.running !== false,
+        speedMultiplier: typeof data.speedMultiplier === "number" ? data.speedMultiplier : undefined,
+        resetGeneration: typeof data.resetGeneration === "number" ? data.resetGeneration : undefined,
+      };
+    }
+  } catch {
+    // Default running if API briefly restarting
+  }
+  return { running: true };
+}
+
 async function initialize(): Promise<void> {
   console.log("=".repeat(60));
-  console.log("Mumbai Local Train Simulator");
-  console.log("CSMT - Kalyan Line");
+  console.log("IRIS Multi-Corridor Railway Traffic Simulator (CR + SECR)");
   console.log("=".repeat(60));
 
-  // Set simulation start time
-  // We'll start at 06:00 to match the timetable
-  simulationBaseDate = new Date();
-  simulationBaseDate.setHours(6, 0, 0, 0);
-  simulationStartRealTime = Date.now();
-
-  console.log(`[Init] Simulation start time: ${simulationBaseDate.toLocaleTimeString()}`);
-  console.log(`[Init] Speed multiplier: ${simulationSpeedMultiplier}x`);
-
-  // Load stations and build track graph
   console.log("[Init] Loading Central Railway stations...");
   const stationsData = loadStations();
   trackGraph = buildTrackGraph(stationsData);
@@ -65,150 +89,103 @@ async function initialize(): Promise<void> {
     console.warn("[Init] SECR stations not loaded:", err);
   }
 
-  // Load timetables
-  console.log("[Init] Loading Central Railway timetable...");
-  trains = loadTimetable(simulationBaseDate);
+  resetSimulationClock(startHour, startMinute);
+  console.log(`[Init] Start clock: ${getSimulationTime().toLocaleTimeString()} | Speed: ${simulationSpeedMultiplier}x`);
 
-  console.log("[Init] Loading SECR Raipur Division timetable...");
-  try {
-    secrTrains = loadSecrTimetable(simulationBaseDate);
-  } catch (err) {
-    console.warn("[Init] SECR timetable not loaded:", err);
-  }
-
-  // Check API health
-  console.log("[Init] Checking API health...");
   const apiHealthy = await checkApiHealth();
   if (!apiHealthy) {
-    console.warn("[Init] ⚠️  API is not responding. Simulator will still run but data won't be sent.");
-    console.warn(`[Init] Make sure the API is running at ${API_URL}`);
+    console.warn(`[Init] API at ${API_URL} not responding yet; will retry on ticks.`);
   } else {
     console.log("[Init] ✓ API is healthy");
   }
-
-  // Skip seed trains - let simulator handle everything based on timetable departure times
-  console.log("[Init] Skipping seed trains - trains will appear when they depart");
-
-  console.log("[Init] Initialization complete");
-  console.log("=".repeat(60));
 }
 
-/**
- * Sends seed trains to populate the frontend initially
- */
-async function sendSeedTrains(): Promise<void> {
-  const seedModule = require("./seed.js");
-  await seedModule.sendSeedTrains(API_URL);
-}
-
-/**
- * Checks if the simulation control state is running on the backend
- */
-async function checkSimulationRunning(): Promise<boolean> {
-  try {
-    const response = await fetch(API_URL.replace("/receiver", "/receiver/control"));
-    if (response.ok) {
-      const data = (await response.json()) as any;
-      return data.running !== false;
-    }
-  } catch (error) {
-    // Default to true on connection errors so offline mode still runs
-  }
-  return true;
-}
-
-/**
- * Main simulation tick
- */
 async function tick(): Promise<void> {
-  // Check if simulation is running from the control API
-  const isControlRunning = await checkSimulationRunning();
-  if (!isControlRunning) {
-    if (tickCount % 10 === 0) {
-      console.log("[Simulator] Simulation suspended (paused via Control Panel)");
+  const nowRealMs = Date.now();
+  const realDeltaSec = Math.max(0.1, Math.min(5, (nowRealMs - lastRealTickMs) / 1000));
+  lastRealTickMs = nowRealMs;
+
+  const control = await fetchControlState();
+  if (typeof control.speedMultiplier === "number" && control.speedMultiplier !== simulationSpeedMultiplier) {
+    simulationSpeedMultiplier = control.speedMultiplier;
+    console.log(`[Control] Playback speed updated to ${simulationSpeedMultiplier}x`);
+  }
+
+  if (typeof control.resetGeneration === "number" && control.resetGeneration > lastResetGeneration) {
+    lastResetGeneration = control.resetGeneration;
+    resetSimulationClock(startHour, startMinute);
+    console.log(`[Control] Simulation reset to ${getSimulationTime().toLocaleTimeString()}`);
+  }
+
+  if (!control.running) {
+    if (tickCount % 15 === 0) {
+      console.log("[Simulator] Paused via Control Panel");
     }
     return;
   }
 
   tickCount++;
+  const simulatedDtSec = realDeltaSec * simulationSpeedMultiplier;
+  simTimeMs += simulatedDtSec * 1000;
   const currentTime = getSimulationTime();
+
   blockedSectorIds = await getBlockedSectorIds();
 
-  // Simulate all trains (Central Railway)
-  const newStates = simulateAllTrains(
+  // Central Railway (CR)
+  const newCrStates = simulateAllTrains(
     trains,
     currentTime,
     trackGraph,
     trainStates,
-    SIMULATION_INTERVAL_MS / 1000,
+    simulatedDtSec,
     blockedSectorIds
   );
+  trainStates = newCrStates;
 
-  // Simulate all trains (SECR Raipur Division)
+  // South East Central Railway (SECR Raipur Division)
+  const combinedStates = new Map<string, TrainState>(newCrStates);
   if (secrTrackGraph && secrTrains.length > 0) {
     const newSecrStates = simulateAllTrains(
       secrTrains,
       currentTime,
       secrTrackGraph,
       secrTrainStates,
-      SIMULATION_INTERVAL_MS / 1000,
-      blockedSectorIds
+      simulatedDtSec,
+      blockedSectorsWithFallback(blockedSectorIds)
     );
     secrTrainStates = newSecrStates;
-    for (const [id, state] of newSecrStates.entries()) {
-      newStates.set(id, state);
+    for (const [id, st] of newSecrStates.entries()) {
+      combinedStates.set(id, st);
     }
   }
 
-    trainStates = newStates;
-
-    // Continuous loop: if all trains completed or past morning shift, reset back to 06:00 AM
-    const hoursElapsed = ((Date.now() - simulationStartRealTime) * simulationSpeedMultiplier) / (3600 * 1000);
-    if (hoursElapsed > 2.0 && trainStates.size === 0) {
-      console.log("[Simulator] All morning trains completed. Resetting simulation clock to 06:00:00 AM for 24/7 continuous simulation...");
-      simulationStartRealTime = Date.now();
-      simulationBaseDate = new Date();
-      simulationBaseDate.setHours(6, 0, 0, 0);
-      trainStates = new Map();
-      secrTrainStates = new Map();
-    }
-
-  // Log status every 10 ticks (20 seconds)
-  if (tickCount % 10 === 0) {
-    const activeCount = trainStates.size;
-    const movingCount = Array.from(trainStates.values()).filter(s => s.speed > 0).length;
-    console.log(
-      `[Tick ${tickCount}] Time: ${currentTime.toLocaleTimeString()} | ` +
-      `Active trains: ${activeCount} | Moving: ${movingCount} | ` +
-      `Blocked sectors: ${blockedSectorIds.size}`
-    );
-  }
-
-  // Send data to API with the simulated timestamp
-  if (trainStates.size > 0) {
-    const result = await sendAllTrainData(trainStates, currentTime.getTime());
-    
-    if (tickCount % 30 === 0) { // Log every minute
-      console.log(
-        `[Network] Sent: ${result.success} | Failed: ${result.failed}`
-      );
-    }
-  }
-}
-
-/**
- * Starts the simulation loop
- */
-function start(): void {
-  if (isRunning) {
-    console.log("[Simulator] Already running");
+  // Loop back seamlessly once morning rush completes (after 08:30 with no active trains)
+  if (currentTime.getHours() >= 9 && combinedStates.size === 0) {
+    console.log("[Simulator] Morning traffic cycle complete. Looping smoothly to 06:00 AM...");
+    resetSimulationClock(6, 0);
     return;
   }
 
-  isRunning = true;
-  console.log("[Simulator] Starting simulation loop...");
-  console.log(`[Simulator] Update interval: ${SIMULATION_INTERVAL_MS}ms`);
+  if (tickCount % 20 === 0) {
+    const movingCount = Array.from(combinedStates.values()).filter((s) => s.speed > 0).length;
+    console.log(
+      `[Tick ${tickCount}] ${currentTime.toLocaleTimeString()} (${simulationSpeedMultiplier}x) | Active: ${combinedStates.size} (CR:${trainStates.size}, SECR:${secrTrainStates.size}) | Moving: ${movingCount} | Blocked: ${blockedSectorIds.size}`
+    );
+  }
 
+  if (combinedStates.size > 0) {
+    await sendAllTrainData(combinedStates, simTimeMs);
+  }
+}
+
+function blockedSectorsWithFallback(set: Set<string>): Set<string> {
+  return set;
+}
+
+function start(): void {
+  if (isRunning) return;
+  isRunning = true;
+  lastRealTickMs = Date.now();
   simulationTimer = setInterval(async () => {
     try {
       await tick();
@@ -216,77 +193,46 @@ function start(): void {
       console.error("[Simulator] Tick error:", error);
     }
   }, SIMULATION_INTERVAL_MS);
-
-  console.log("[Simulator] Simulation started. Press Ctrl+C to stop.");
+  console.log(`[Simulator] Running 1000ms telemetry loop at ${simulationSpeedMultiplier}x`);
 }
 
-/**
- * Stops the simulation loop
- */
 function stop(): void {
-  if (!isRunning) {
-    console.log("[Simulator] Not running");
-    return;
-  }
-
+  if (!isRunning) return;
   isRunning = false;
   if (simulationTimer) {
     clearInterval(simulationTimer);
     simulationTimer = null;
   }
-
-  console.log("[Simulator] Simulation stopped");
-  console.log(`[Simulator] Total ticks: ${tickCount}`);
 }
 
-/**
- * Handles graceful shutdown
- */
 function setupGracefulShutdown(): void {
   const shutdown = (signal: string) => {
     console.log(`\n[Simulator] Received ${signal}, shutting down...`);
     stop();
     process.exit(0);
   };
-
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGHUP", () => shutdown("SIGHUP"));
-
-  // Handle uncaught errors
-  process.on("uncaughtException", (error) => {
-    console.error("[Simulator] Uncaught exception:", error);
-    stop();
-    process.exit(1);
-  });
-
-  process.on("unhandledRejection", (reason) => {
-    console.error("[Simulator] Unhandled rejection:", reason);
-  });
 }
 
-/**
- * Main entry point
- */
 async function main(): Promise<void> {
-  // Parse command line arguments
   const args = process.argv.slice(2);
-  
   for (const arg of args) {
     if (arg.startsWith("--speed=")) {
-      simulationSpeedMultiplier = parseFloat(arg.split("=")[1]) || 1;
+      simulationSpeedMultiplier = parseFloat(arg.split("=")[1]) || 5;
     }
     if (arg.startsWith("--start-hour=")) {
       const hour = parseInt(arg.split("=")[1], 10);
-      if (hour >= 0 && hour <= 23) {
-        simulationBaseDate = new Date();
-        simulationBaseDate.setHours(hour, 0, 0, 0);
-      }
+      if (hour >= 0 && hour <= 23) startHour = hour;
+    }
+    if (arg.startsWith("--start-minute=")) {
+      const minute = parseInt(arg.split("=")[1], 10);
+      if (minute >= 0 && minute <= 59) startMinute = minute;
     }
   }
 
   setupGracefulShutdown();
-
   try {
     await initialize();
     start();
@@ -296,15 +242,5 @@ async function main(): Promise<void> {
   }
 }
 
-// Export for testing
-export {
-  initialize,
-  start,
-  stop,
-  tick,
-  getSimulationTime,
-  trainStates,
-};
-
-// Run main
+export { initialize, start, stop, tick, getSimulationTime, trainStates };
 main();

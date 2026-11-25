@@ -5,8 +5,11 @@ import {
   interpolateCoordinates,
   haversineDistance,
   allocateTrainLane,
+  resolveCompositeSectorPath,
   SectorPathInfo,
 } from "./trackBuilder";
+
+export type SignalAspect = "GREEN" | "DOUBLE_YELLOW" | "YELLOW" | "RED";
 
 export interface TrainState {
   train_id: string;
@@ -17,17 +20,23 @@ export interface TrainState {
   destination: string;
   currentStation: string;
   nextStation: string;
-  progress: number; // 0-1 progress between current and next station
+  progress: number; // 0-1 progress along current segment
   isAtStation: boolean;
   previousLat: number;
   previousLng: number;
   lastUpdateTime: number;
-  // Track allocation info
-  trackType?: string; // e.g., "up_slow", "down_fast"
-  trackVariant?: string; // e.g., "up_slow_1", "up_slow_2" for split tracks
-  laneIndex?: number; // 0-based lane index for split tracks
-  laneCount?: number; // total lanes for this segment
-  sectorId?: string; // active sector the train occupies
+  trackType?: string;
+  trackVariant?: string;
+  laneIndex?: number;
+  laneCount?: number;
+  sectorId?: string;
+  // Enhanced railway physics & interlocking state
+  delaySeconds: number;
+  signalAspect: SignalAspect;
+  stateReason: string;
+  sectorIndices?: string[];
+  currentSectorIndex?: number;
+  line_id?: "csmt-kalyan" | "csmt-panvel" | "secr-raipur";
 }
 
 export interface ActiveSegment {
@@ -40,29 +49,34 @@ export interface ActiveSegment {
 }
 
 /**
- * Finds the active segment for a train at the current simulation time
- * Returns null if the train hasn't started or has completed its journey
+ * S-curve velocity/progress shaping near station departures and arrivals
+ * so trains smoothly accelerate out of platforms and brake on approach.
  */
+function smoothStationProgress(linearProgress: number): number {
+  const p = Math.max(0, Math.min(1, linearProgress));
+  // Blend linear (70%) + cosine S-curve (30%) for realistic acceleration/braking curves
+  const cosine = 0.5 - 0.5 * Math.cos(Math.PI * p);
+  return 0.7 * p + 0.3 * cosine;
+}
+
 export function findActiveSegment(
   train: TrainEntry,
   currentTime: Date,
   trackGraph: TrackGraph
 ): ActiveSegment | null {
   const stopTimes = train.stop_times;
+  if (!stopTimes || stopTimes.length < 2) return null;
 
-  // Check if train hasn't started yet (SCHEDULED state - not rendered)
   const firstDeparture = stopTimes[0].departureDate!;
   if (currentTime < firstDeparture) {
-    return null; // Train is scheduled but not yet active
+    return null;
   }
 
-  // Check if train has completed its journey
   const lastArrival = stopTimes[stopTimes.length - 1].arrivalDate!;
   if (currentTime > lastArrival) {
     return null;
   }
 
-  // Find the segment where currentTime is between departure(A) and arrival(B)
   for (let i = 0; i < stopTimes.length - 1; i++) {
     const currentStop = stopTimes[i];
     const nextStop = stopTimes[i + 1];
@@ -70,15 +84,27 @@ export function findActiveSegment(
     const departure = currentStop.departureDate!;
     const arrival = nextStop.arrivalDate!;
 
-    // Train is on this segment
+    // Dwelling at current station before departing (except stop 0 handled above)
+    if (currentTime >= currentStop.arrivalDate! && currentTime < departure) {
+      const stationCoord = trackGraph.stationMap.get(currentStop.station);
+      if (stationCoord) {
+        return {
+          fromStation: currentStop.station,
+          toStation: currentStop.station,
+          departureTime: currentStop.arrivalDate!,
+          arrivalTime: departure,
+          fromCoord: stationCoord,
+          toCoord: stationCoord,
+        };
+      }
+    }
+
+    // Running between currentStop and nextStop
     if (currentTime >= departure && currentTime <= arrival) {
       const fromCoord = trackGraph.stationMap.get(currentStop.station);
       const toCoord = trackGraph.stationMap.get(nextStop.station);
 
       if (!fromCoord || !toCoord) {
-        console.warn(
-          `[TrainSimulator] Station not found: ${currentStop.station} or ${nextStop.station}`
-        );
         continue;
       }
 
@@ -92,7 +118,7 @@ export function findActiveSegment(
       };
     }
 
-    // Train is stopped at a station (between arrival and departure at same station)
+    // Dwelling at nextStop
     if (i < stopTimes.length - 1) {
       const stationArrival = nextStop.arrivalDate!;
       const stationDeparture = nextStop.departureDate!;
@@ -116,9 +142,6 @@ export function findActiveSegment(
   return null;
 }
 
-/**
- * Calculates the progress (0-1) along the current segment
- */
 export function calculateProgress(
   currentTime: Date,
   departureTime: Date,
@@ -133,9 +156,6 @@ export function calculateProgress(
   return Math.max(0, Math.min(1, progress));
 }
 
-/**
- * Calculates speed based on distance traveled since last update
- */
 export function calculateSpeed(
   previousLat: number,
   previousLng: number,
@@ -143,63 +163,59 @@ export function calculateSpeed(
   currentLng: number,
   intervalSeconds: number
 ): number {
-  const distance = haversineDistance(
+  if (intervalSeconds <= 0) return 0;
+  const distanceKm = haversineDistance(
     previousLat,
     previousLng,
     currentLat,
     currentLng
   );
-
-  // Convert km per interval to km/h
-  const speedKmh = (distance / intervalSeconds) * 3600;
-
-  // Clamp to reasonable train speeds based on type:
-  // - Slow trains: 0-60 km/h (typically 40-50 km/h)
-  // - Fast trains: 0-80 km/h (typically 60-70 km/h)
-  // - AC trains: 0-70 km/h (typically 55-65 km/h)
-  // - Women's trains: 0-55 km/h (typically 40-50 km/h)
-  const maxSpeed = 120; // Absolute maximum
-  return Math.min(Math.max(0, speedKmh), maxSpeed);
+  const speedKmh = (distanceKm / intervalSeconds) * 3600;
+  return Math.min(Math.max(0, speedKmh), 135);
 }
 
-/**
- * Simulates a single train at the current time
- * Returns the train state or null if the train is not active
- */
+function getMaxPermittedSpeed(train: TrainEntry, lineId?: string): number {
+  if (lineId === "secr-raipur") {
+    if (train.train_subtype === "vande_bharat") return 130;
+    if (train.train_subtype === "superfast" || train.train_subtype === "mail_express") return 110;
+    if (train.train_subtype === "freight") return 60;
+    return 75; // MEMU
+  }
+  const t = getTrainType(train);
+  if (t === "fast") return 95;
+  if (t === "ac") return 85;
+  if (t === "womens") return 65;
+  return 70;
+}
+
 export function simulateTrain(
   train: TrainEntry,
   currentTime: Date,
   trackGraph: TrackGraph,
   previousState: TrainState | null,
   intervalSeconds: number,
-  blockedSectors: Set<string> = new Set()
+  blockedSectors: Set<string> = new Set(),
+  occupiedByOthers: Map<string, string> = new Map()
 ): TrainState | null {
-  const segment = findActiveSegment(train, currentTime, trackGraph);
+  const prevDelaySec = previousState?.delaySeconds ?? 0;
+  const effectiveTime = new Date(currentTime.getTime() - prevDelaySec * 1000);
 
+  const segment = findActiveSegment(train, effectiveTime, trackGraph);
   if (!segment) {
     return null;
   }
 
-  // If train is at station (same from and to), speed is 0
   const isAtStation = segment.fromStation === segment.toStation;
-
-  // Calculate base progress from timetable
-  let progress = calculateProgress(
-    currentTime,
-    segment.departureTime,
-    segment.arrivalTime
-  );
-
-  // Start with a straight interpolation between stations
-  let coords = interpolateCoordinates(segment.fromCoord, segment.toCoord, progress);
-
-  // Track metadata (direction + speed role)
   const trainType = getTrainType(train);
-  const direction = segment.fromStation < segment.toStation ? "up" : "down";
-  const speedRole = trainType === "fast" ? "fast" : "slow";
+
+  // Determine direction from station topological order (never alphabetical string comparison!)
+  const fromOrder = trackGraph.stationMap.get(segment.fromStation)?.order ?? 0;
+  const toOrder = trackGraph.stationMap.get(segment.toStation)?.order ?? 0;
+  const fallbackDir = train.direction === "DOWN" ? "down" : "up";
+  const direction = isAtStation ? fallbackDir : fromOrder < toOrder ? "up" : "down";
+  const speedRole = trainType === "fast" || trainType === "ac" ? "fast" : "slow";
   const trackType = train.track_type || `${direction}_${speedRole}`;
 
-  // Lane allocation info
   const laneMapKey = `${segment.fromStation}__${segment.toStation}__${trackType}`;
   const laneInfo = trackGraph.laneMap?.get(laneMapKey);
   let laneCount = Number.isFinite(train.lane_count)
@@ -218,22 +234,33 @@ export function simulateTrain(
     ? (train.lane_index as number)
     : allocatedLaneIndex;
   let trackVariant = train.track_variant || allocatedVariant;
-  let sectorId: string | undefined;
 
-  // If sector geometry exists, project the train onto that path so it "rides" its lane
-  const sectorPath = getSectorPath(
-    trackGraph,
-    segment.fromStation,
-    segment.toStation,
-    trackVariant,
-    trackType
+  const sectorPath = !isAtStation
+    ? resolveCompositeSectorPath(
+        trackGraph,
+        segment.fromStation,
+        segment.toStation,
+        trackVariant,
+        trackType
+      )
+    : undefined;
+
+  let rawProgress = calculateProgress(
+    effectiveTime,
+    segment.departureTime,
+    segment.arrivalTime
   );
+  let progress = isAtStation ? rawProgress : smoothStationProgress(rawProgress);
 
-  if (sectorPath) {
-    const sectorPosition = projectOntoSectorPath(sectorPath, progress);
-    coords = sectorPosition.coords;
-    sectorId = sectorPosition.sectorId;
-    // Use lane metadata from the sector path when available
+  let coords = interpolateCoordinates(segment.fromCoord, segment.toCoord, progress);
+  let sectorId: string | undefined;
+  let currentSectorIdx = -1;
+
+  if (sectorPath && sectorPath.segments.length > 0) {
+    const projected = projectOntoSectorPath(sectorPath, progress);
+    coords = projected.coords;
+    sectorId = projected.sectorId;
+    currentSectorIdx = projected.segmentIndex;
     if (typeof sectorPath.laneIndex === "number") {
       laneIndex = sectorPath.laneIndex;
     }
@@ -241,77 +268,136 @@ export function simulateTrain(
     trackVariant = sectorPath.splitVariant || trackVariant;
   }
 
-  // Calculate speed based on movement since last update
+  // Signal Aspect & Block Occupancy Check (Lookahead 3 sectors ahead)
+  let signalAspect: SignalAspect = "GREEN";
+  let stateReason = isAtStation ? "Station Dwell Halt" : "Running at Sectional MPS";
+  let delaySeconds = prevDelaySec;
+
+  if (!isAtStation && sectorPath && currentSectorIdx >= 0) {
+    const segs = sectorPath.segments;
+    const isBlockedAt = (idx: number) => idx < segs.length && blockedSectors.has(segs[idx].sectorId);
+    const isOccupiedAt = (idx: number) => {
+      if (idx >= segs.length) return false;
+      const occupant = occupiedByOthers.get(segs[idx].sectorId);
+      return Boolean(occupant && occupant !== train.train_id);
+    };
+
+    const redAhead =
+      isBlockedAt(currentSectorIdx) ||
+      isBlockedAt(currentSectorIdx + 1) ||
+      isOccupiedAt(currentSectorIdx + 1);
+    const yellowAhead = isBlockedAt(currentSectorIdx + 2) || isOccupiedAt(currentSectorIdx + 2);
+    const doubleYellowAhead = isBlockedAt(currentSectorIdx + 3) || isOccupiedAt(currentSectorIdx + 3);
+
+    if (redAhead) {
+      signalAspect = "RED";
+      stateReason = isBlockedAt(currentSectorIdx) || isBlockedAt(currentSectorIdx + 1)
+        ? "Held at Red Signal (Blocked Sector Ahead)"
+        : "Held at Red Signal (Block Occupied by Leading Train)";
+
+      // Hold safely before advancing into occupied/blocked block and accumulate real delay
+      if (previousState) {
+        delaySeconds = prevDelaySec + intervalSeconds;
+        const dampedSpeed = Math.max(0, (previousState.speed || 0) - 22 * Math.min(intervalSeconds / 2, 2));
+        return {
+          ...previousState,
+          speed: dampedSpeed < 2 ? 0 : Math.round(dampedSpeed * 100) / 100,
+          previousLat: previousState.lat,
+          previousLng: previousState.lng,
+          lastUpdateTime: currentTime.getTime(),
+          delaySeconds: Math.round(delaySeconds),
+          signalAspect,
+          stateReason,
+        };
+      }
+    } else if (yellowAhead) {
+      signalAspect = "YELLOW";
+      stateReason = "Caution Aspect — Slowing for Next Block";
+    } else if (doubleYellowAhead) {
+      signalAspect = "DOUBLE_YELLOW";
+      stateReason = "Preliminary Caution — Approach Restricted";
+    }
+  } else if (sectorId && blockedSectors.has(sectorId)) {
+    signalAspect = "RED";
+    stateReason = "Held at Red Signal (Blocked Sector)";
+    if (previousState) {
+      return {
+        ...previousState,
+        speed: 0,
+        lastUpdateTime: currentTime.getTime(),
+        delaySeconds: Math.round(prevDelaySec + intervalSeconds),
+        signalAspect,
+        stateReason,
+      };
+    }
+  }
+
+  // Schedule recovery on clear GREEN signal when slightly delayed
+  if (signalAspect === "GREEN" && delaySeconds > 0 && !isAtStation) {
+    delaySeconds = Math.max(0, delaySeconds - intervalSeconds * 0.12);
+  }
+
+  // Compute physical speed in km/h
   let speed = 0;
   const prevLat = previousState?.lat ?? coords.lat;
   const prevLng = previousState?.lng ?? coords.lng;
-  
+
   if (isAtStation) {
     speed = 0;
   } else if (previousState) {
-    // Calculate speed from movement
-    speed = calculateSpeed(
+    const calcSpeed = calculateSpeed(
       prevLat,
       prevLng,
       coords.lat,
       coords.lng,
       intervalSeconds
     );
-    
-    // Apply realistic speed limits based on train type
-    const trainType = getTrainType(train);
-    const segmentDuration = (segment.arrivalTime.getTime() - segment.departureTime.getTime()) / 1000; // seconds
-    const segmentDistance = haversineDistance(
-      segment.fromCoord.lat,
-      segment.fromCoord.lng,
-      segment.toCoord.lat,
-      segment.toCoord.lng
-    ) / 1000; // km
-    
-    if (segmentDuration > 0 && segmentDistance > 0) {
-      // Calculate average speed for this segment
-      const avgSpeed = (segmentDistance / segmentDuration) * 3600; // km/h
-      
-      // Apply type-specific speed limits
-      let maxSpeed = 60; // Default for slow trains
-      if (trainType === "fast") {
-        maxSpeed = 80;
-      } else if (trainType === "ac") {
-        maxSpeed = 70;
-      } else if (trainType === "womens") {
-        maxSpeed = 55;
-      }
-      
-      // Apply type-specific speed limits first
-      speed = Math.min(speed, maxSpeed);
-      
-      // Occasionally introduce speed anomalies for emergency testing (3% chance per tick)
-      // This helps test emergency detection
-      if (Math.random() < 0.03 && !isAtStation && speed > 5) {
-        // Randomly introduce speed issues
-        const anomalyType = Math.random();
-        if (anomalyType < 0.4) {
-          // Speed drop (sudden brake) - reduce speed significantly
-          speed = Math.max(0, speed * 0.2); // Drop to 20% of current speed
-        } else if (anomalyType < 0.8) {
-          // Overspeed (acceleration issue) - exceed normal limits
-          speed = Math.min(120, maxSpeed * 1.3); // 30% over max speed
-        }
-        // else: normal speed (no anomaly)
-      }
-      
-      // If calculated speed is very low but we're moving, use a minimum realistic speed
-      if (speed < 5 && !isAtStation && progress > 0.1 && progress < 0.9) {
-        speed = Math.max(speed, avgSpeed * 0.7); // At least 70% of average for segment
-      }
+    const maxSpeed = getMaxPermittedSpeed(train, trackGraph.lineId);
+
+    const segDistKm =
+      haversineDistance(
+        segment.fromCoord.lat,
+        segment.fromCoord.lng,
+        segment.toCoord.lat,
+        segment.toCoord.lng
+      ) / 1000;
+    const segDurSec = (segment.arrivalTime.getTime() - segment.departureTime.getTime()) / 1000;
+    const scheduledAvgSpeed = segDurSec > 0 ? (segDistKm / segDurSec) * 3600 : maxSpeed * 0.7;
+
+    // Velocity envelope near station ends (accel / decel ramps)
+    const edgeFactor =
+      rawProgress < 0.1
+        ? 0.35 + (rawProgress / 0.1) * 0.65
+        : rawProgress > 0.9
+        ? 0.35 + ((1 - rawProgress) / 0.1) * 0.65
+        : 1.0;
+
+    let targetSpeed = Math.min(maxSpeed, Math.max(calcSpeed, scheduledAvgSpeed * 1.1)) * edgeFactor;
+
+    if (signalAspect === "YELLOW") {
+      targetSpeed = Math.min(targetSpeed, 42);
+    } else if (signalAspect === "DOUBLE_YELLOW") {
+      targetSpeed = Math.min(targetSpeed, 65);
     }
+
+    // Smooth acceleration / braking inertia blending
+    const prevSpeed = previousState.speed ?? targetSpeed;
+    const maxDelta = 18 * Math.min(intervalSeconds / 2, 2.5);
+    if (Math.abs(targetSpeed - prevSpeed) > maxDelta) {
+      speed = prevSpeed + Math.sign(targetSpeed - prevSpeed) * maxDelta;
+    } else {
+      speed = targetSpeed;
+    }
+    speed = Math.max(5, Math.min(maxSpeed, speed));
+  } else {
+    speed = isAtStation ? 0 : Math.min(getMaxPermittedSpeed(train, trackGraph.lineId), 55);
   }
-  
-  let finalState: TrainState = {
+
+  return {
     train_id: train.train_id,
     lat: coords.lat,
     lng: coords.lng,
-    speed,
+    speed: Math.round(speed * 100) / 100,
     type: trainType,
     destination: train.to,
     currentStation: segment.fromStation,
@@ -326,24 +412,13 @@ export function simulateTrain(
     laneIndex,
     laneCount,
     sectorId,
+    delaySeconds: Math.round(delaySeconds),
+    signalAspect,
+    stateReason,
+    line_id: trackGraph.lineId as any,
   };
-
-  if (sectorId && blockedSectors.has(sectorId)) {
-    return {
-      ...finalState,
-      ...(previousState?.sectorId === sectorId
-        ? { lat: previousState.lat, lng: previousState.lng, progress: previousState.progress }
-        : {}),
-      speed: 0,
-    };
-  }
-  
-  return finalState;
 }
 
-/**
- * Simulates all trains at the current time
- */
 export function simulateAllTrains(
   trains: TrainEntry[],
   currentTime: Date,
@@ -352,6 +427,14 @@ export function simulateAllTrains(
   intervalSeconds: number,
   blockedSectors: Set<string> = new Set()
 ): Map<string, TrainState> {
+  // Build occupied sector snapshot from previous tick for safe moving-block/fixed-block spacing
+  const occupiedMap = new Map<string, string>();
+  for (const [tid, st] of previousStates.entries()) {
+    if (st.sectorId && !st.isAtStation) {
+      occupiedMap.set(st.sectorId, tid);
+    }
+  }
+
   const newStates = new Map<string, TrainState>();
 
   for (const train of trains) {
@@ -362,46 +445,25 @@ export function simulateAllTrains(
       trackGraph,
       previousState,
       intervalSeconds,
-      blockedSectors
+      blockedSectors,
+      occupiedMap
     );
 
     if (state) {
       newStates.set(train.train_id, state);
+      if (state.sectorId && !state.isAtStation) {
+        occupiedMap.set(state.sectorId, train.train_id);
+      }
     }
   }
 
   return newStates;
 }
 
-function getSectorPath(
-  trackGraph: TrackGraph,
-  fromStation: string,
-  toStation: string,
-  trackVariant?: string,
-  trackType?: string
-): SectorPathInfo | undefined {
-  const sectorMap = trackGraph.sectorMap;
-  if (!sectorMap) return undefined;
-
-  if (trackVariant) {
-    const variantKey = `${fromStation}__${toStation}__${trackVariant}`;
-    const byVariant = sectorMap.get(variantKey);
-    if (byVariant) return byVariant;
-  }
-
-  if (trackType) {
-    const fallbackKey = `${fromStation}__${toStation}__${trackType}`;
-    const byType = sectorMap.get(fallbackKey);
-    if (byType) return byType;
-  }
-
-  return undefined;
-}
-
 function projectOntoSectorPath(
   sectorPath: SectorPathInfo,
   segmentProgress: number
-): { coords: { lat: number; lng: number }; sectorId: string } {
+): { coords: { lat: number; lng: number }; sectorId: string; segmentIndex: number } {
   const clampedProgress = Math.max(0, Math.min(1, segmentProgress));
   const targetDistance = clampedProgress * (sectorPath.totalLengthMeters || 0);
 
@@ -409,14 +471,18 @@ function projectOntoSectorPath(
     return {
       coords: { lat: 0, lng: 0 },
       sectorId: "",
+      segmentIndex: -1,
     };
   }
 
-  let activeSegment = sectorPath.segments[sectorPath.segments.length - 1];
+  let activeIndex = sectorPath.segments.length - 1;
+  let activeSegment = sectorPath.segments[activeIndex];
 
-  for (const segment of sectorPath.segments) {
-    if (targetDistance <= segment.cumulativeEnd) {
-      activeSegment = segment;
+  for (let i = 0; i < sectorPath.segments.length; i++) {
+    const seg = sectorPath.segments[i];
+    if (targetDistance <= seg.cumulativeEnd) {
+      activeSegment = seg;
+      activeIndex = i;
       break;
     }
   }
@@ -438,6 +504,7 @@ function projectOntoSectorPath(
   return {
     coords: { lat, lng },
     sectorId: activeSegment.sectorId,
+    segmentIndex: activeIndex,
   };
 }
 
