@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { useSimulation } from '../../hooks/useSimulation'
 import { useLiveTrains } from '../../hooks/useLiveTrains'
-import { useTheme } from '../theme-provider'
+import { useIsDarkMode } from '../theme-provider'
 import {
   ZoomIn,
   ZoomOut,
@@ -118,14 +118,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
 }) => {
   const { update } = useSimulation()
 
-  const { theme } = useTheme()
-  const isDarkMode = useMemo(() => {
-    if (theme === 'dark') return true
-    if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-    }
-    return false
-  }, [theme])
+  const isDarkMode = useIsDarkMode()
 
   // Live train polling (1000ms high-frequency telemetry)
   const {
@@ -732,6 +725,26 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
     setViewBox(computeDefaultViewBox())
   }, [computeDefaultViewBox])
 
+  // Map dispatch hotkeys: G (Stringline), R (Reset View), F (Fit Corridor), L (Follow Lock)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      const key = e.key.toLowerCase()
+      if (key === 'g') {
+        setShowStringline((s) => !s)
+      } else if (key === 'r') {
+        handleResetView()
+      } else if (key === 'f') {
+        handleFitAll()
+      } else if (key === 'l' && focusedTrainId) {
+        setFollowTrainLock((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [handleResetView, handleFitAll, focusedTrainId])
+
   // Tooltip helper
   const showTooltip = useCallback(
     (e: React.MouseEvent, content: string) => {
@@ -851,37 +864,37 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
   const downTracks = layout.continuousTracks.filter(t => t.id.startsWith('down'))
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden bg-slate-950 text-slate-100 select-none flex flex-col font-sans">
+    <div className="absolute inset-0 w-full h-full overflow-hidden transition-colors duration-300 bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 select-none flex flex-col font-sans">
       {/* 1. TOP HEADER & TELEMETRY CONTROL BAR */}
-      <div className="flex-shrink-0 z-20 px-3 py-2 bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between gap-2 text-xs flex-wrap">
+      <div className="flex-shrink-0 z-20 px-3 py-2 transition-colors duration-300 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 text-xs flex-wrap">
         {/* Left: Corridor Title & Signals Summary */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-bold tracking-wide text-slate-200">
-            <Radio className={`w-4 h-4 animate-pulse ${isSecr ? 'text-amber-400' : 'text-emerald-400'}`} />
+          <div className="flex items-center gap-1.5 font-bold tracking-wide text-slate-900 dark:text-slate-200">
+            <Radio className={`w-4 h-4 animate-pulse ${isSecr ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
             <span>
               {isSecr ? 'SECR · DURG — RAIPUR — BILASPUR' : 'CR · CSMT — KALYAN CORRIDOR'}
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-700 text-[11px]">
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold border border-emerald-500/30">
+          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700 text-[11px]">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/30">
               <CheckCircle2 className="w-3 h-3" />
               Clear: {signalStats.total - signalStats.occupied - signalStats.caution}
             </span>
             {signalStats.caution > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 font-semibold border border-amber-500/30">
                 <AlertTriangle className="w-3 h-3" />
                 Caution: {signalStats.caution}
               </span>
             )}
             {signalStats.occupied > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 font-semibold border border-rose-500/30">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 font-semibold border border-rose-500/30">
                 <TrainIcon className="w-3 h-3" />
                 Occupied: {signalStats.occupied}
               </span>
             )}
             {signalStats.blocked > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-red-600/20 text-red-400 font-semibold border border-red-500/40">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-red-500/15 dark:bg-red-600/20 text-red-700 dark:text-red-400 font-semibold border border-red-500/40">
                 Blocked: {signalStats.blocked}
               </span>
             )}
@@ -898,7 +911,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 return (
                   <span
                     key={type}
-                    className="px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1"
+                    className="px-1.5 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1 shadow-sm"
                     style={{ backgroundColor: color }}
                   >
                     {TRAIN_TYPE_LABELS[type as keyof typeof TRAIN_TYPE_LABELS]?.split(' ')[0]}: {count}
@@ -913,10 +926,10 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
               onClick={() => setFollowTrainLock((v) => !v)}
               className={`px-2 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all border ${
                 followTrainLock
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                  ? 'bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:text-white'
               }`}
-              title="Toggle Follow-Train Camera Lock"
+              title="Toggle Follow-Train Camera Lock (L)"
             >
               <Crosshair className="w-3 h-3" />
               {followTrainLock ? `Following ${focusedTrainId.replace('SECR_', '')}` : 'Follow'}
@@ -927,16 +940,16 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
             onClick={() => setShowStringline((s) => !s)}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all border ${
               showStringline
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_10px_rgba(6,182,212,0.25)]'
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                ? 'bg-cyan-500/15 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-white'
             }`}
-            title="Toggle Live Time-Distance Stringline Trajectory Chart"
+            title="Toggle Live Time-Distance Stringline Trajectory Chart (G)"
           >
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <Activity className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
             Stringline Graph
           </button>
 
-          <div className="text-[11px] font-mono text-emerald-400 bg-slate-950 px-2.5 py-1 rounded border border-emerald-500/30 font-semibold">
+          <div className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-950 px-2.5 py-1 rounded border border-emerald-200 dark:border-emerald-500/30 font-semibold transition-colors duration-300">
             {update?.currentTime
               ? new Date(update.currentTime).toLocaleTimeString()
               : '--:--:--'}
@@ -944,62 +957,91 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
         </div>
       </div>
 
-      {/* 2. STATION QUICK-JUMP NAVIGATOR BAR */}
-      <div className="flex-shrink-0 z-10 px-3 py-1.5 bg-slate-900/70 backdrop-blur border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1 mr-1">
-          <Navigation className="w-3 h-3 text-cyan-400" />
-          Stations:
-        </span>
-        {quickStations.map((stationName) => {
-          const isActive = activeQuickStation === stationName
-          return (
-            <button
-              key={stationName}
-              onClick={() => panToStation(stationName)}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all duration-200 whitespace-nowrap ${
-                isActive
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(6,182,212,0.5)]'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60'
-              }`}
-            >
-              {stationName}
-            </button>
-          )
-        })}
+      {/* 2. STATION QUICK-JUMP & ACTIVE TRAIN CAMERA BAR */}
+      <div className="flex-shrink-0 z-10 px-3 py-1.5 transition-colors duration-300 bg-slate-100/90 dark:bg-slate-900/75 backdrop-blur border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1 mr-1">
+            <Navigation className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+            Stations:
+          </span>
+          {quickStations.map((stationName) => {
+            const isActive = activeQuickStation === stationName
+            return (
+              <button
+                key={stationName}
+                onClick={() => panToStation(stationName)}
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-cyan-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold shadow-sm'
+                    : 'bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700/60'
+                }`}
+              >
+                {stationName}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Active Corridor Trains Quick-Focus Strip */}
+        {corridorTrains.length > 0 && (
+          <div className="hidden lg:flex items-center gap-1 pl-2 border-l border-slate-300 dark:border-slate-700 flex-shrink-0">
+            {corridorTrains.slice(0, 3).map((tr) => {
+              const isSel = focusedTrainId === tr.train_id
+              return (
+                <button
+                  key={`qf-${tr.train_id}`}
+                  onClick={() => onTrainClick?.(tr.train_id)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold whitespace-nowrap transition-all border flex items-center gap-1 ${
+                    isSel
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                      : 'bg-white/90 dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-cyan-500'
+                  }`}
+                  title={`Focus camera & inspector on ${tr.train_id}`}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: tr.signalAspect === 'RED' ? '#ef4444' : '#10b981' }}
+                  />
+                  {tr.train_id.replace('SECR_', '').slice(0, 10)}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* 3. CORRIDOR MAP — tracks fill vertical space, pan/zoom to navigate */}
       <div
         ref={containerRef}
-        className={`flex-1 relative overflow-hidden ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`flex-1 relative overflow-hidden transition-colors duration-300 bg-slate-50 dark:bg-[#050914] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       >
         {/* Track Direction Legend (left side) */}
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-2">
           {/* UP direction group */}
-          <div className="flex flex-col gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-lg">
-            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">↑ Up Line</div>
+          <div className="flex flex-col gap-1 px-2.5 py-1.5 rounded-lg transition-colors duration-300 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 shadow-lg">
+            <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">↑ Up Line</div>
             {upTracks.map((track) => (
               <div key={track.id} className="flex items-center gap-1.5">
                 <div
                   className="w-6 h-[3px] rounded-full"
                   style={{ backgroundColor: track.color }}
                 />
-                <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wide">
+                <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                   {track.label.replace('UP ', '')}
                 </span>
               </div>
             ))}
           </div>
           {/* DOWN direction group */}
-          <div className="flex flex-col gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-lg">
-            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">↓ Down Line</div>
+          <div className="flex flex-col gap-1 px-2.5 py-1.5 rounded-lg transition-colors duration-300 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 shadow-lg">
+            <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">↓ Down Line</div>
             {downTracks.map((track) => (
               <div key={track.id} className="flex items-center gap-1.5">
                 <div
                   className="w-6 h-[3px] rounded-full"
                   style={{ backgroundColor: track.color }}
                 />
-                <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wide">
+                <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                   {track.label.replace('DOWN ', '')}
                 </span>
               </div>
@@ -1008,33 +1050,33 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
         </div>
 
         {/* Floating Zoom & Control Toolbar */}
-        <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-lg p-1 shadow-2xl">
+        <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5 transition-colors duration-300 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 rounded-lg p-1 shadow-xl">
           <button
             onClick={() => handleZoom('in')}
-            className="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             title="Zoom In"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleZoom('out')}
-            className="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             title="Zoom Out"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
-          <div className="border-t border-slate-700/60 my-0.5" />
+          <div className="border-t border-slate-200 dark:border-slate-700/60 my-0.5" />
           <button
             onClick={handleResetView}
-            className="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors"
-            title="Default View"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title="Default View (R)"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
           <button
             onClick={handleFitAll}
-            className="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors"
-            title="Fit Entire Corridor"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title="Fit Entire Corridor (F)"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
@@ -1103,7 +1145,36 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
               <stop offset="80%" stopColor="#38bdf8" stopOpacity="0.3" />
               <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
             </linearGradient>
+
+            {/* Architectural Blueprint Grid Pattern */}
+            <pattern id="corridor-grid-pattern" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path
+                d="M 60 0 L 0 0 0 60"
+                fill="none"
+                stroke={isDarkMode ? '#1e293b' : '#cbd5e1'}
+                strokeWidth="0.6"
+                opacity={isDarkMode ? 0.32 : 0.45}
+              />
+            </pattern>
           </defs>
+
+          {/* Dual-Theme Smooth Fade Canvas Backdrop & Blueprint Grid */}
+          <rect
+            x={viewBox.x - 400}
+            y={viewBox.y - 200}
+            width={viewBox.w + 800}
+            height={viewBox.h + 400}
+            fill={isDarkMode ? '#050914' : '#f8fafc'}
+            style={{ transition: 'fill 300ms ease' }}
+          />
+          <rect
+            x={viewBox.x - 400}
+            y={viewBox.y - 200}
+            width={viewBox.w + 800}
+            height={viewBox.h + 400}
+            fill="url(#corridor-grid-pattern)"
+            style={{ pointerEvents: 'none' }}
+          />
 
           {/* Background grid lines for depth */}
           {layout.continuousTracks.map((track) => (
@@ -1153,10 +1224,10 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 y1={track.y + TRACK_HEIGHT / 2}
                 x2={track.endX}
                 y2={track.y + TRACK_HEIGHT / 2}
-                stroke={isDarkMode ? '#1e293b' : '#cbd5e1'}
+                stroke={isDarkMode ? '#1e293b' : '#e2e8f0'}
                 strokeWidth={TRACK_HEIGHT + 6}
                 strokeLinecap="round"
-                opacity={0.7}
+                opacity={isDarkMode ? 0.75 : 0.9}
               />
 
               {/* Concrete crossties / sleepers */}
@@ -1168,7 +1239,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 stroke={isDarkMode ? '#334155' : '#94a3b8'}
                 strokeWidth={TRACK_HEIGHT}
                 strokeDasharray="4,8"
-                opacity={0.5}
+                opacity={isDarkMode ? 0.5 : 0.65}
               />
 
               {/* Steel Rails (Left & Right) */}
@@ -1177,18 +1248,18 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 y1={track.y + TRACK_HEIGHT / 2 - 3}
                 x2={track.endX}
                 y2={track.y + TRACK_HEIGHT / 2 - 3}
-                stroke={isDarkMode ? '#64748b' : '#475569'}
+                stroke={isDarkMode ? '#64748b' : '#334155'}
                 strokeWidth={1.5}
-                opacity={0.85}
+                opacity={0.9}
               />
               <line
                 x1={track.startX}
                 y1={track.y + TRACK_HEIGHT / 2 + 3}
                 x2={track.endX}
                 y2={track.y + TRACK_HEIGHT / 2 + 3}
-                stroke={isDarkMode ? '#64748b' : '#475569'}
+                stroke={isDarkMode ? '#64748b' : '#334155'}
                 strokeWidth={1.5}
-                opacity={0.85}
+                opacity={0.9}
               />
 
               {/* Color accent line on track (subtle) */}
@@ -1285,7 +1356,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                         : isDarkMode ? '#334155' : '#0284c7'
                     }
                     strokeWidth={isStationActive || isRaipurJn ? 2.5 : 1}
-                    filter="drop-shadow(0 2px 6px rgba(0,0,0,0.4))"
+                    filter={isDarkMode ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' : 'drop-shadow(0 2px 5px rgba(15,23,42,0.14))'}
                   />
                   <text
                     x={0}
@@ -1377,7 +1448,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                     cy={track.y + TRACK_HEIGHT / 2}
                     r={isStationActive ? 5 : 4}
                     fill={isStationActive ? '#22d3ee' : '#38bdf8'}
-                    stroke="#0f172a"
+                    stroke={isDarkMode ? '#0f172a' : '#ffffff'}
                     strokeWidth={1.2}
                   />
                 ))}
@@ -1509,7 +1580,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                   </g>
                 )}
 
-                {/* Block Boundary Dividers (Insulated Rail Joints / Signals) */}
+                {/* Block Boundary Dividers & 3-Aspect Signal Heads */}
                 <line
                   x1={sector.startX}
                   y1={sector.y - TRACK_HEIGHT / 2 - 4}
@@ -1522,9 +1593,9 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 <circle
                   cx={sector.startX}
                   cy={sector.y - TRACK_HEIGHT / 2 - 5}
-                  r={3}
+                  r={3.2}
                   fill={statusColor}
-                  stroke="#0f172a"
+                  stroke={isDarkMode ? '#0f172a' : '#ffffff'}
                   strokeWidth={1}
                 />
 
@@ -1540,14 +1611,63 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 <circle
                   cx={sector.endX}
                   cy={sector.y - TRACK_HEIGHT / 2 - 5}
-                  r={3}
+                  r={3.2}
                   fill={statusColor}
-                  stroke="#0f172a"
+                  stroke={isDarkMode ? '#0f172a' : '#ffffff'}
                   strokeWidth={1}
                 />
               </g>
             )
           })}
+
+          {/* 3B. GRADUATED KILOMETER CHAINAGE RULER */}
+          {(() => {
+            const maxKm = Math.ceil(Math.max(...layout.stations.map((s) => s.kmFromStart), 10) / 5) * 5
+            const rulerY = layout.totalHeight - 16
+            const stepKm = isSecr ? 10 : 5
+            const ticks: number[] = []
+            for (let km = 0; km <= maxKm; km += stepKm) ticks.push(km)
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                <line
+                  x1={150}
+                  y1={rulerY}
+                  x2={150 + maxKm * kmToPixels}
+                  y2={rulerY}
+                  stroke={isDarkMode ? '#334155' : '#94a3b8'}
+                  strokeWidth={1}
+                  opacity={0.7}
+                />
+                {ticks.map((km) => {
+                  const tx = 150 + km * kmToPixels
+                  if (tx < visibleRange.visibleMinX - 100 || tx > visibleRange.visibleMaxX + 100) return null
+                  return (
+                    <g key={`km-tick-${km}`}>
+                      <line
+                        x1={tx}
+                        y1={rulerY - 4}
+                        x2={tx}
+                        y2={rulerY + 3}
+                        stroke={isDarkMode ? '#475569' : '#64748b'}
+                        strokeWidth={1.2}
+                      />
+                      <text
+                        x={tx}
+                        y={rulerY + 12}
+                        textAnchor="middle"
+                        fontSize="8.5"
+                        fontFamily="ui-monospace, monospace"
+                        fontWeight="bold"
+                        fill={isDarkMode ? '#64748b' : '#475569'}
+                      >
+                        KM {km}
+                      </text>
+                    </g>
+                  )
+                })}
+              </g>
+            )
+          })()}
 
           {/* 4. LIVE TRAINS LAYER (Corridor-accurate coordinates + 60fps transitions) */}
           <LiveTrainsLayer
@@ -1570,7 +1690,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
         {/* GLASSMORPHISM TOOLTIP */}
         {tooltip && (
           <div
-            className="fixed z-50 pointer-events-none bg-slate-900/95 text-slate-100 text-xs rounded-lg px-3 py-2 shadow-2xl border border-slate-700/80 backdrop-blur-md whitespace-pre-line font-mono leading-relaxed"
+            className="fixed z-50 pointer-events-none transition-colors duration-200 bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 shadow-2xl border border-slate-300 dark:border-slate-700/80 backdrop-blur-md whitespace-pre-line font-mono leading-relaxed"
             style={{
               left: `${tooltip.x}px`,
               top: `${tooltip.y}px`,
@@ -1584,17 +1704,17 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
       </div>
 
       {/* 4B. INTERACTIVE FULL-CORRIDOR MINIMAP RADAR BAR */}
-      <div className="flex-shrink-0 bg-slate-900/90 border-t border-slate-800 px-3 py-1.5 flex items-center gap-3 z-20">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex-shrink-0">
+      <div className="flex-shrink-0 transition-colors duration-300 bg-white/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 px-3 py-1.5 flex items-center gap-3 z-20">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold flex-shrink-0">
           Minimap ({corridorTrains.length} Active):
         </span>
         <div
           onClick={handleMinimapClick}
-          className="relative flex-1 h-6 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden cursor-pointer"
+          className="relative flex-1 h-6 transition-colors duration-300 bg-slate-100 dark:bg-slate-950 rounded-lg border border-slate-300 dark:border-slate-800 overflow-hidden cursor-pointer"
           title="Click anywhere along the corridor minimap to jump camera"
         >
           {/* Baseline line */}
-          <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[2px] bg-slate-800" />
+          <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[2px] bg-slate-300 dark:bg-slate-800" />
 
           {/* Station ticks */}
           {corridorConfig.stations.map((st) => {
@@ -1606,7 +1726,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 key={`mm-${st.name}`}
                 style={{ left: `${pct}%` }}
                 className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 ${
-                  isMajor ? 'w-1.5 h-3.5 bg-amber-400 rounded-sm' : 'w-[2px] h-2 bg-slate-600'
+                  isMajor ? 'w-1.5 h-3.5 bg-amber-500 dark:bg-amber-400 rounded-sm' : 'w-[2px] h-2 bg-slate-400 dark:bg-slate-600'
                 }`}
               />
             )
@@ -1623,7 +1743,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
                 key={`mm-tr-${tr.train_id}`}
                 style={{ left: `${pct}%`, backgroundColor: color }}
                 className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full transition-all duration-700 ${
-                  isFocused ? 'w-3 h-3 ring-2 ring-yellow-400 z-10' : 'w-2 h-2'
+                  isFocused ? 'w-3 h-3 ring-2 ring-amber-400 z-10' : 'w-2 h-2'
                 }`}
                 title={`${tr.train_id} (${Math.round(tr.speed)} km/h)`}
               />
@@ -1636,7 +1756,7 @@ export const JsonCorridorMap: React.FC<JsonCorridorMapProps> = ({
               left: `${Math.max(0, Math.min(100, (viewBox.x / layout.totalWidth) * 100))}%`,
               width: `${Math.max(4, Math.min(100, (viewBox.w / layout.totalWidth) * 100))}%`,
             }}
-            className="absolute top-0 bottom-0 border border-cyan-400/70 bg-cyan-400/10 rounded pointer-events-none"
+            className="absolute top-0 bottom-0 border border-cyan-600/80 dark:border-cyan-400/70 bg-cyan-500/15 dark:bg-cyan-400/10 rounded pointer-events-none"
           />
         </div>
       </div>

@@ -28,9 +28,6 @@ export class TrainStore {
 
   setSimulationRunning(running: boolean): void {
     this.simulationRunning = running;
-    if (!running) {
-      this.clear();
-    }
   }
 
   getSpeedMultiplier(): number {

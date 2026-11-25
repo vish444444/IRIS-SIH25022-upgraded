@@ -93,14 +93,27 @@ export const TrainInfoPanel: React.FC<TrainInfoPanelProps> = ({
 
   const aspectBadgeColor =
     train.signalAspect === 'RED'
-      ? 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+      ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40'
       : train.signalAspect === 'YELLOW' || train.signalAspect === 'DOUBLE_YELLOW'
-      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40'
+      : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
 
   const speedKmh = train.gps?.speed ?? train.speed * 3.6
   const speedPts = train.speedHistory || []
   const maxHistSpeed = Math.max(100, ...speedPts.map((s) => s.speed))
+  const lastHist = speedPts.length >= 2 ? speedPts[speedPts.length - 1].speed : speedKmh
+  const prevHist = speedPts.length >= 2 ? speedPts[speedPts.length - 2].speed : speedKmh
+  const accelDelta = lastHist - prevHist
+  const dynamicsLabel =
+    train.signalAspect === 'RED' && speedKmh < 1
+      ? 'SIG HOLD'
+      : accelDelta > 1.2
+      ? 'ACCEL ▲'
+      : accelDelta < -1.2
+      ? 'BRAKING ▼'
+      : speedKmh > 1
+      ? 'CRUISE ●'
+      : 'DWELL'
 
   return (
     <div
@@ -181,26 +194,38 @@ export const TrainInfoPanel: React.FC<TrainInfoPanelProps> = ({
 
         {/* Speed Telemetry Sparkline */}
         {speedPts.length > 1 && (
-          <div className="bg-slate-950/90 rounded-xl p-2 border border-slate-800">
-            <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 mb-1 flex justify-between">
-              <span>Speed Profile (Live Telemetry)</span>
-              <span className="text-emerald-400">{Math.round(speedKmh)} kph</span>
+          <div className="bg-slate-100/90 dark:bg-slate-950/90 rounded-xl p-2 border border-slate-200 dark:border-slate-800 transition-colors duration-300">
+            <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex justify-between items-center">
+              <span>Speed Profile (Telemetry)</span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300">{dynamicsLabel}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{Math.round(speedKmh)} kph</span>
+              </span>
             </div>
             <svg viewBox="0 0 260 36" className="w-full h-9">
-              <polyline
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={speedPts
-                  .map((pt, idx) => {
-                    const x = (idx / Math.max(1, speedPts.length - 1)) * 254 + 3
-                    const y = 33 - (Math.min(pt.speed, maxHistSpeed) / maxHistSpeed) * 29
-                    return `${x.toFixed(1)},${y.toFixed(1)}`
-                  })
-                  .join(' ')}
-              />
+              {(() => {
+                const coords = speedPts.map((pt, idx) => ({
+                  x: (idx / Math.max(1, speedPts.length - 1)) * 252 + 4,
+                  y: 32 - (Math.min(pt.speed, maxHistSpeed) / maxHistSpeed) * 28,
+                }))
+                const lineStr = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ')
+                const areaStr = `4,34 ${lineStr} ${coords[coords.length - 1].x.toFixed(1)},34`
+                const tail = coords[coords.length - 1]
+                return (
+                  <>
+                    <polygon points={areaStr} fill="#10b981" fillOpacity="0.14" />
+                    <polyline
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      points={lineStr}
+                    />
+                    <circle cx={tail.x} cy={tail.y} r="2.8" fill="#10b981" />
+                  </>
+                )
+              })()}
             </svg>
           </div>
         )}

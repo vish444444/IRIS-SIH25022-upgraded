@@ -159,10 +159,10 @@ async function tick(): Promise<void> {
     }
   }
 
-  // Loop back seamlessly once morning rush completes (after 08:30 with no active trains)
+  // Loop back seamlessly once morning rush completes (after 09:00 with no active trains)
   if (currentTime.getHours() >= 9 && combinedStates.size === 0) {
-    console.log("[Simulator] Morning traffic cycle complete. Looping smoothly to 06:00 AM...");
-    resetSimulationClock(6, 0);
+    console.log(`[Simulator] Morning traffic cycle complete. Looping smoothly to ${startHour}:${String(startMinute).padStart(2, '0')} AM...`);
+    resetSimulationClock(startHour, startMinute);
     return;
   }
 

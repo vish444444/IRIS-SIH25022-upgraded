@@ -96,8 +96,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           try {
             await refreshAccessToken();
-            // Retry original request with new token
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            const freshToken = localStorage.getItem("access_token") || accessToken;
+            if (freshToken) {
+              originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            }
             return axios(originalRequest);
           } catch (refreshError) {
             logout();

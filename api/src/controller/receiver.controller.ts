@@ -394,13 +394,14 @@ export class ReceiverController {
     if (isNewTrain || !existingTrain) return;
 
     const trainId = updatedTrain.train_id;
-    const speedDropThreshold = 10; // km/h - sudden speed drop (lowered for more detection)
-    const overspeedThreshold = 90; // km/h - overspeed (lowered for more detection)
-    const stallThreshold = 180000; // 3 minutes in ms - train stopped too long (lowered)
+    const speedDropThreshold = 45; // km/h - abnormal sudden emergency braking drop
+    const overspeedThreshold = 140; // km/h - exceeds Vande Bharat 130 km/h MPS
+    const stallThreshold = 300000; // 5 minutes stale telemetry outside normal schedule
 
-    // Check for speed drop emergency
+    // Ignore normal scheduled station slowdowns or amber signal braking
+    const isSignalBraking = updatedTrain.signalAspect === 'YELLOW' || updatedTrain.signalAspect === 'RED';
     const speedDrop = existingTrain.speed - updatedTrain.speed;
-    if (speedDrop >= speedDropThreshold && existingTrain.speed > 5 && updatedTrain.speed < existingTrain.speed * 0.5) {
+    if (!isSignalBraking && speedDrop >= speedDropThreshold && existingTrain.speed > 55 && updatedTrain.speed < existingTrain.speed * 0.25) {
       // Check if we already logged this emergency recently (avoid duplicates)
       const recentLogs = this.trainLogService.getLogs({ trainId, limit: 10 });
       const recentEmergency = recentLogs.find((log: any) => 

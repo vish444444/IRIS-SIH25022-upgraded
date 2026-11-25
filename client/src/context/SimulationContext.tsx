@@ -12,6 +12,8 @@ interface SimulationContextType {
   forecasts: Forecast[];
   trackClosures: TrackClosure[];
   isConnected: boolean;
+  preferredLineId: string;
+  setPreferredLineId: (lineId: string) => void;
   automaticAnalysis: {
     conflictTrains: ConflictTrainInput[];
     recommendations: AIRecommendation[];
@@ -58,6 +60,12 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [trackClosures, setTrackClosures] = useState<TrackClosure[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [preferredLineId, setPreferredLineIdState] = useState<string>('secr-raipur');
+  const preferredLineRef = React.useRef<string>('secr-raipur');
+  const setPreferredLineId = React.useCallback((lineId: string) => {
+    preferredLineRef.current = lineId;
+    setPreferredLineIdState(lineId);
+  }, []);
   const [automaticAnalysis, setAutomaticAnalysis] = useState<SimulationContextType['automaticAnalysis']>(null);
   const analysisCooldown = React.useRef(new Map<string, number>());
 
@@ -238,7 +246,16 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
             }
           }
         });
-        const conflictGroup = Array.from(bySection.entries()).find(([, group]) => group.length > 1);
+        const activePref = preferredLineRef.current;
+        const conflictEntries = Array.from(bySection.entries())
+          .filter(([, group]) => group.length > 1)
+          .sort(([keyA], [keyB]) => {
+            const prefA = keyA.startsWith(`${activePref}:`);
+            const prefB = keyB.startsWith(`${activePref}:`);
+            if (prefA !== prefB) return prefA ? -1 : 1;
+            return 0;
+          });
+        const conflictGroup = conflictEntries[0];
         if (conflictGroup) {
           const [resourceKey, groupTrains] = conflictGroup;
           const cleanResource = resourceKey.split(':').slice(1).join(':');
@@ -393,6 +410,8 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({ children
         forecasts,
         trackClosures,
         isConnected,
+        preferredLineId,
+        setPreferredLineId,
         automaticAnalysis,
       }}
     >

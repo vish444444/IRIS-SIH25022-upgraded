@@ -72,3 +72,23 @@ export const useTheme = () => {
 
   return context
 }
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useIsDarkMode = (): boolean => {
+  const { theme } = useTheme()
+  const [systemDark, setSystemDark] = useState<boolean>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+  )
+
+  useEffect(() => {
+    if (theme !== 'system' || typeof window === 'undefined') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [theme])
+
+  if (theme === 'dark') return true
+  if (theme === 'light') return false
+  return systemDark
+}

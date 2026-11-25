@@ -62,7 +62,7 @@ const getApiBaseUrl = () => {
 }
 
 const SimulationContent: React.FC = () => {
-  const { trains, isConnected, update, emergencyEvents, automaticAnalysis } = useSimulation()
+  const { trains, isConnected, update, emergencyEvents, automaticAnalysis, setPreferredLineId } = useSimulation()
   const { user, logout } = useAuth()
   const [selectedTrain, setSelectedTrain] = useState<TrainUpdate | null>(null)
   const [focusedTrainId, setFocusedTrainId] = useState<string | null>(null)
@@ -168,11 +168,11 @@ const SimulationContent: React.FC = () => {
       const response = await axios.post(`${getApiBaseUrl()}/api/receiver/control`, { running: false })
       if (response.data.success) {
         setSimulationRunning(false)
-        toast.success("Simulation stopped. Trains cleared.")
+        toast.success("Simulation paused — trains held in position for inspection")
       }
     } catch (error) {
-      console.error('Failed to stop simulation:', error)
-      toast.error("Failed to stop simulation")
+      console.error('Failed to pause simulation:', error)
+      toast.error("Failed to pause simulation")
     }
   }
 
@@ -200,6 +200,29 @@ const SimulationContent: React.FC = () => {
     }
   }
 
+  // Sync preferred corridor with AI conflict detector
+  useEffect(() => {
+    setPreferredLineId(selectedLineId)
+  }, [selectedLineId, setPreferredLineId])
+
+  // Operations keyboard shortcuts: Space (Play/Pause), 1-4 (1x/5x/10x/20x)
+  useEffect(() => {
+    const speedByKey: Record<string, number> = { '1': 1, '2': 5, '3': 10, '4': 20 }
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (e.code === 'Space') {
+        e.preventDefault()
+        if (simulationRunning) handleStop()
+        else handleStart()
+      } else if (speedByKey[e.key]) {
+        handleSpeedChange(speedByKey[e.key])
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [simulationRunning])
+
   const handleTrainClick = (
     trainId: string,
     emergencyReason?: string | null
@@ -211,22 +234,25 @@ const SimulationContent: React.FC = () => {
     setSelectedEmergencyReason(emergencyReason || null)
   }
 
-  // Only render trains that are STOPPED (stationary) or CRUISING (moving)
-  // SCHEDULED trains (not yet departed) should not be rendered
-  const activeTrains = Array.from(trains.values()).filter(
+  // Corridor-scoped + overall telemetry metrics
+  const allTrainList = Array.from(trains.values())
+  const corridorTrains = allTrainList.filter((t) => !t.lineId || t.lineId === selectedLineId)
+  const activeTrains = corridorTrains.filter(
     (t) => t.state !== TrainState.STOPPED && t.state !== TrainState.SCHEDULED && (t.gps?.speed || t.speed * 3.6 || 0) > 0.5
   )
-  const stoppedTrains = Array.from(trains.values()).filter(
+  const stoppedTrains = corridorTrains.filter(
     (t) => (t.state === TrainState.STOPPED || (t.gps?.speed || t.speed * 3.6 || 0) <= 0.5) && t.state !== TrainState.SCHEDULED
   )
   const activeEmergencies = emergencyEvents.filter((e) => !e.resolved).length
+  const onTimeCount = corridorTrains.filter((t) => (t.delay || 0) <= 30).length
+  const punctualityPct = corridorTrains.length > 0 ? Math.round((onTimeCount / corridorTrains.length) * 100) : 100
 
-  // Calculate average speed from all trains
-  const speeds = Array.from(trains.values()).map((t) => t.gps?.speed || t.speed * 3.6 || 0)
+  // Calculate average speed across active corridor trains
+  const speeds = corridorTrains.map((t) => t.gps?.speed || t.speed * 3.6 || 0)
   const avgSpeed = speeds.length > 0 ? speeds.reduce((sum, s) => sum + s, 0) / speeds.length : 0
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 overflow-hidden relative flex flex-col font-sans">
+    <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 overflow-hidden relative flex flex-col font-sans">
       {/* Subtle Dot Pattern matching Landing Page */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.06]"
@@ -245,7 +271,7 @@ const SimulationContent: React.FC = () => {
       />
 
       <div className="h-screen flex flex-col relative z-10">
-        <header className="backdrop-blur-xl bg-white/80 dark:bg-[#0b101d]/85 border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-2.5 flex items-center justify-between z-20 shadow-sm flex-shrink-0">
+        <header className="backdrop-blur-xl transition-colors duration-300 bg-white/85 dark:bg-[#0b101d]/85 border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-2.5 flex items-center justify-between z-20 shadow-sm flex-shrink-0">
           <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-700/80 flex items-center justify-center shadow-inner">
               <Train className="w-4 h-4 text-emerald-400" />
@@ -299,12 +325,12 @@ const SimulationContent: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Live Operations clock */}
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest hidden md:inline">Sim Time:</span>
-              <div className="text-xs font-semibold font-mono bg-slate-950/90 text-emerald-400 border border-emerald-500/30 px-3.5 py-1 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.15)] flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-widest hidden md:inline">Sim Time:</span>
+              <div className="text-xs font-semibold font-mono transition-colors duration-300 bg-emerald-50 dark:bg-slate-950/90 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3.5 py-1 rounded-full shadow-sm dark:shadow-[0_0_12px_rgba(16,185,129,0.15)] flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 {update?.currentTime
                   ? new Date(update.currentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                  : '06:00:00 AM'}
+                  : '06:15:00 AM'}
               </div>
             </div>
 
@@ -622,20 +648,20 @@ const SimulationContent: React.FC = () => {
                       {stoppedTrains.length}
                     </div>
                   </div>
-                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
-                      Avg Speed
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl transition-colors duration-300">
+                    <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-0.5">
+                      Corridor Avg
                     </div>
                     <div className="text-lg font-extrabold font-mono text-slate-900 dark:text-white">
                       {avgSpeed.toFixed(1)} <span className="text-[10px] text-slate-400">kph</span>
                     </div>
                   </div>
-                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">
-                      Emergencies
+                  <div className="text-center p-2.5 bg-slate-50 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800 rounded-xl transition-colors duration-300">
+                    <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-0.5">
+                      Punctuality
                     </div>
-                    <div className={`text-lg font-extrabold font-mono ${activeEmergencies > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
-                      {activeEmergencies}
+                    <div className={`text-lg font-extrabold font-mono ${punctualityPct < 80 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      {punctualityPct}%
                     </div>
                   </div>
                 </div>

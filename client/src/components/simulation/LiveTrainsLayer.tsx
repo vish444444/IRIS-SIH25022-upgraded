@@ -1,10 +1,12 @@
 import React, { useMemo, memo } from "react";
 import { LineId, LiveTrainData, TRAIN_TYPE_COLORS, TRAIN_TYPE_LABELS } from "../../types/liveTrains.types";
 import { GPSToMapConverter, Station, getTrackIndexForType } from "../../utils/gpsToMapConverter";
+import { useIsDarkMode } from "../theme-provider";
 
 interface LiveTrainMarkerProps {
   train: LiveTrainData;
   converter: GPSToMapConverter;
+  isDarkMode: boolean;
   onMouseEnter?: (e: React.MouseEvent, content: string) => void;
   onMouseMove?: (e: React.MouseEvent, content: string) => void;
   onMouseLeave?: () => void;
@@ -27,6 +29,7 @@ const SIGNAL_DOT_COLORS: Record<string, string> = {
 export const LiveTrainMarker: React.FC<LiveTrainMarkerProps> = memo(({
   train,
   converter,
+  isDarkMode,
   onMouseEnter,
   onMouseMove,
   onMouseLeave,
@@ -131,7 +134,7 @@ export const LiveTrainMarker: React.FC<LiveTrainMarkerProps> = memo(({
         <polygon
           points={`${headX},${-4} ${headX + beamDirection * 38},${-12} ${headX + beamDirection * 38},${12} ${headX},${4}`}
           fill={isGoingDown ? "url(#headlight-down)" : "url(#headlight-up)"}
-          opacity={0.75}
+          opacity={isDarkMode ? 0.78 : 0.45}
           style={{ pointerEvents: "none" }}
         />
       )}
@@ -272,16 +275,17 @@ export const LiveTrainMarker: React.FC<LiveTrainMarkerProps> = memo(({
           width={52}
           height={11.5}
           rx={3}
-          fill={isFocused ? "#1e293b" : "#0b1120"}
-          stroke={isSignalHeld ? "#ef4444" : isFocused ? "#facc15" : color}
-          strokeWidth={1}
-          opacity={0.94}
+          fill={isDarkMode ? (isFocused ? "#1e293b" : "#0b1120") : (isFocused ? "#fefce8" : "#ffffff")}
+          stroke={isSignalHeld ? "#ef4444" : isFocused ? "#eab308" : color}
+          strokeWidth={isFocused ? 1.4 : 1}
+          opacity={0.96}
+          filter={isDarkMode ? undefined : "drop-shadow(0 1px 2px rgba(15,23,42,0.16))"}
         />
         <circle cx={-20} cy={4.8} r={2.2} fill={signalColor} />
         <text
           x={2}
           y={7.4}
-          fill="#ffffff"
+          fill={isDarkMode ? "#ffffff" : "#0f172a"}
           fontSize="7"
           fontWeight="bold"
           fontFamily="ui-monospace, monospace"
@@ -300,15 +304,15 @@ export const LiveTrainMarker: React.FC<LiveTrainMarkerProps> = memo(({
             width={40}
             height={9}
             rx={2}
-            fill={isSignalHeld ? "#7f1d1d" : "#0f172a"}
-            stroke={isSignalHeld ? "#ef4444" : "#334155"}
-            strokeWidth={0.6}
-            opacity={0.9}
+            fill={isSignalHeld ? (isDarkMode ? "#7f1d1d" : "#fee2e2") : (isDarkMode ? "#0f172a" : "#f1f5f9")}
+            stroke={isSignalHeld ? "#ef4444" : (isDarkMode ? "#334155" : "#cbd5e1")}
+            strokeWidth={0.7}
+            opacity={0.95}
           />
           <text
             x={0}
             y={6.8}
-            fill={isSignalHeld ? "#fecaca" : "#34d399"}
+            fill={isSignalHeld ? (isDarkMode ? "#fecaca" : "#b91c1c") : (isDarkMode ? "#34d399" : "#047857")}
             fontSize="6.5"
             fontWeight="bold"
             fontFamily="ui-monospace, monospace"
@@ -355,6 +359,7 @@ export const LiveTrainsLayer: React.FC<LiveTrainsLayerProps> = memo(({
   onMouseMove,
   onMouseLeave,
 }) => {
+  const themeDark = useIsDarkMode();
   const converter = useMemo(() => {
     return new GPSToMapConverter(
       {
@@ -384,6 +389,7 @@ export const LiveTrainsLayer: React.FC<LiveTrainsLayerProps> = memo(({
           key={train.train_id}
           train={train}
           converter={converter}
+          isDarkMode={themeDark}
           computeTrainY={computeTrainY}
           isFocused={focusedTrainId === train.train_id}
           onClick={onTrainClick}
