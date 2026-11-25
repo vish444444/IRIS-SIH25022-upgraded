@@ -132,6 +132,7 @@ export const requestOverride = async (payload: {
 }): Promise<{ override_allowed: boolean; reasons: string[] }> => {
   const res = await axios.post(`${API_BASE_URL}/api/ai/override`, payload, {
     headers: authHeaders(),
+    validateStatus: (status) => (status >= 200 && status < 300) || status === 409,
   })
   return res.data
 }

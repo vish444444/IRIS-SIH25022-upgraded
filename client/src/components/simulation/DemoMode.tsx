@@ -168,30 +168,42 @@ export const DemoMode: React.FC = () => {
   const runUnsafeOverrideDemo = async (targetStation: 'Dadar' | 'Raipur' = 'Dadar') => {
     setActiveScenario(null)
     const isRaipur = targetStation === 'Raipur'
-    const result = await requestOverride({
-      plans: [
-        {
-          train_id: isRaipur ? 'SECR_VB_20825' : 'T099',
-          section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
-          enters_at_sec: 0,
-          exits_at_sec: 200,
-          planned_speed_kmh: 60,
-          direction: 'up',
-        },
-        {
-          train_id: isRaipur ? 'SECR_COAL_501' : 'T205',
-          section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
-          enters_at_sec: 20,
-          exits_at_sec: 220,
-          planned_speed_kmh: 60,
-          direction: 'up',
-        },
-      ],
-      reason: isRaipur
-        ? 'Demo: controller attempts to force Coal Rake into occupied Platform 1 of Raipur Junction'
-        : 'Demo: controller manually forces T205 into an occupied sector',
-    })
-    setUnsafeDemo({ allowed: result.override_allowed, reasons: result.reasons })
+    try {
+      const result = await requestOverride({
+        plans: [
+          {
+            train_id: isRaipur ? 'SECR_VB_20825' : 'T099',
+            section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
+            enters_at_sec: 0,
+            exits_at_sec: 200,
+            planned_speed_kmh: 60,
+            direction: 'up',
+          },
+          {
+            train_id: isRaipur ? 'SECR_COAL_501' : 'T205',
+            section_id: isRaipur ? 'RAIPUR_P1' : 'S18',
+            enters_at_sec: 20,
+            exits_at_sec: 220,
+            planned_speed_kmh: 60,
+            direction: 'up',
+          },
+        ],
+        reason: isRaipur
+          ? 'Demo: controller attempts to force Coal Rake into occupied Platform 1 of Raipur Junction'
+          : 'Demo: controller manually forces T205 into an occupied sector',
+      })
+      setUnsafeDemo({ allowed: Boolean(result.override_allowed), reasons: result.reasons || [] })
+    } catch (err: any) {
+      const data = err?.response?.data
+      if (data && typeof data.override_allowed === 'boolean') {
+        setUnsafeDemo({ allowed: data.override_allowed, reasons: data.reasons || [] })
+      } else {
+        setUnsafeDemo({
+          allowed: false,
+          reasons: [err?.message || 'Safety validator blocked unsafe override'],
+        })
+      }
+    }
   }
 
   return (
